@@ -173,11 +173,30 @@
   let daNotifica = false;     // aperta toccando un promemoria?
   let spunte = {};            // caselle del consenso spuntate
   let consensoIl = null;      // momento in cui sono state spuntate le caselle
+  let notificaInviata = null; // quando è partita la notifica che ha aperto l'app
+  let tempi = {};             // millisecondi passati su ogni domanda
+  let tDomanda = null;        // quando è comparsa la domanda corrente
 
-  if (new URLSearchParams(location.search).get("da") === "notifica" && schermata === "home") { // (solo se l'ID c'è già)
+  // Cronometro per domanda: somma il tempo passato sulla domanda corrente
+  function fermaCronometro() {
+    if (tDomanda !== null && DOMANDE[passo]) {
+      const id = DOMANDE[passo].id;
+      tempi[id] = (tempi[id] || 0) + (performance.now() - tDomanda);
+    }
+    tDomanda = performance.now();
+  }
+  function iniziaQuestionario() {
+    passo = 0; risposte = {}; tempi = {};
+    inizio = Date.now(); tDomanda = performance.now();
+  }
+
+  const qp = new URLSearchParams(location.search);
+  if (qp.get("da") === "notifica" && schermata === "home") { // (solo se l'ID c'è già)
+    iniziaQuestionario();
     schermata = "questionario";
     daNotifica = true;
-    inizio = Date.now();
+    const t = Number(qp.get("t"));
+    notificaInviata = t > 0 ? t : null;
   }
 
   // ---------- schermate ----------
@@ -363,7 +382,7 @@
         <button class="link" id="privacy">Privacy e dati</button>
       </div>`;
     app.querySelector("#inizia").addEventListener("click", () => {
-      passo = 0; risposte = {}; inizio = Date.now(); vai("questionario");
+      iniziaQuestionario(); daNotifica = false; notificaInviata = null; vai("questionario");
     });
     const bn = app.querySelector("#notifiche");
     if (bn) bn.addEventListener("click", attivaNotifiche);
@@ -601,7 +620,7 @@
     if (campo) campo.addEventListener("input", () => (risposte[d.id] = campo.value));
 
     app.querySelector("#indietro").addEventListener("click", () => {
-      if (passo === 0) { schermata = "home"; } else { passo--; }
+      if (passo === 0) { tDomanda = null; schermata = "home"; } else { fermaCronometro(); passo--; }
       render();
     });
     app.querySelector("#avanti").addEventListener("click", () => {
@@ -613,32 +632,39 @@
         e.hidden = false;
         return;
       }
+      fermaCronometro();
       if (ultimo) { concludi(); } else { passo++; render(); }
     });
   }
 
   async function concludi() {
     const ora = Date.now();
+    const sec = (ms) => Math.round(ms / 100) / 10; // secondi con un decimale
+    // L'ordine dei campi è l'ordine delle colonne nel foglio: l'ID per primo
     const record = {
       tipo: "risposta",
       id_partecipante: mem.get("id_partecipante") || "",
       codice: codicePartecipante(),
+      da_notifica: daNotifica ? "si" : "no",
+      notifica_inviata_il: notificaInviata ? new Date(notificaInviata).toISOString() : "",
+      latenza_dalla_notifica_secondi: notificaInviata ? Math.max(0, Math.round(((inizio || ora) - notificaInviata) / 1000)) : "",
       iniziato_il: new Date(inizio || ora).toISOString(),
       inviato_il: new Date(ora).toISOString(),
-      durata_secondi: Math.round((ora - (inizio || ora)) / 1000),
-      da_notifica: daNotifica ? "si" : "no",
+      durata_totale_secondi: sec(ora - (inizio || ora)),
       sistema: sistema(),
     };
     DOMANDE.forEach((d) => {
       const v = risposte[d.id];
       record[d.id] = Array.isArray(v) ? v.join("; ") : (v ?? "");
     });
+    // tempo di risposta di ogni singola domanda (secondi)
+    DOMANDE.forEach((d) => { record["tempo_" + d.id] = sec(tempi[d.id] || 0); });
     accoda(record);
     risposte = {}; // non tenere le risposte in memoria oltre il necessario
     mem.set("ultima_compilazione", ora);
     mem.set("conteggio", mem.get("conteggio", 0) + 1);
     aggiornaTagCompilazione();
-    daNotifica = false;
+    daNotifica = false; notificaInviata = null; tempi = {}; tDomanda = null;
     vai("grazie");
     await inviaCoda();
   }
