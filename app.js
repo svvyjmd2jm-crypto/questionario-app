@@ -43,6 +43,7 @@
   // Privacy by default: il servizio di notifiche viene caricato SOLO dopo il consenso.
   let OS = null;
   let osCaricato = false;
+  let osErrore = null; // motivo per cui le notifiche non si sono avviate
   function caricaOneSignal() {
     if (osCaricato || !CONFIG.ONESIGNAL_APP_ID) return;
     osCaricato = true;
@@ -60,12 +61,21 @@
         render();
       } catch (e) {
         console.warn("OneSignal non inizializzato:", e);
+        osErrore = (e && e.message) ? e.message : String(e);
+        render();
       }
     });
     const s = document.createElement("script");
     s.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
     s.defer = true;
+    s.onerror = () => {
+      osErrore = "impossibile scaricare il servizio di notifiche (connessione assente o contenuti bloccati dal browser)";
+      render();
+    };
     document.head.appendChild(s);
+    setTimeout(() => {
+      if (!OS && !osErrore) { osErrore = "il servizio di notifiche non ha risposto entro 20 secondi"; render(); }
+    }, 20000);
   }
 
   function notificheAttive() {
@@ -311,6 +321,14 @@
           </ol>
         </div>`;
     }
+    if (osErrore) {
+      return `
+        <div class="avviso">
+          <p><b>Le notifiche non si sono attivate.</b></p>
+          <p class="piccolo">Motivo: ${esc(osErrore)}</p>
+          <button class="btn secondario" id="riprova">Riprova</button>
+        </div>`;
+    }
     if (!OS) return `<div class="avviso tenue">Caricamento notifiche…</div>`;
     if (notificheAttive()) {
       return `<div class="ok-box">🔔 Promemoria attivi. Ti avviseremo quando è il momento di compilare.</div>`;
@@ -349,6 +367,8 @@
     });
     const bn = app.querySelector("#notifiche");
     if (bn) bn.addEventListener("click", attivaNotifiche);
+    const br = app.querySelector("#riprova");
+    if (br) br.addEventListener("click", () => location.reload());
     app.querySelector("#privacy").addEventListener("click", () => vai("privacy"));
   }
 
