@@ -9,7 +9,7 @@ const CONFIG = {
   NOME_APP: "Diario dello studio",
 
   // 1) URL della Web App di Google Apps Script (vedi GUIDA, passo 2)
-  URL_APPS_SCRIPT: "",
+  URL_APPS_SCRIPT: "https://script.google.com/macros/s/AKfycbyeF710Ab22EpQ5Vy1PvY05ozUzVZdBsM-OV3nKeG7KmkqR_hZcNYviLOlTodW8e1e6jA/exec",
 
   // 2) App ID di OneSignal (vedi GUIDA, passo 4). È un identificativo pubblico.
   //    NON incollare qui la API Key: quella va solo in Code.gs.
