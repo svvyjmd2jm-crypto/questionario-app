@@ -19,7 +19,7 @@ const CONFIG = {
   // OneSignal SOLO l'orario dell'ultima compilazione (mai le risposte).
   // Metti false se preferisci non comunicare nemmeno questo: i promemoria
   // arriveranno a tutti, anche a chi ha appena compilato.
-  PROMEMORIA_SOLO_A_CHI_NON_HA_COMPILATO: true,
+  PROMEMORIA_SOLO_A_CHI_NON_HA_COMPILATO: false,
 
   // ID partecipante: ultime 2 lettere del nome + ultime 2 del cognome
   // + ultime N cifre del cellulare (es. TONO740). 3 cifre bastano.
