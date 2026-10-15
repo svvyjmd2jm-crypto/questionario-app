@@ -13,7 +13,7 @@ const CONFIG = {
 
   // 2) App ID di OneSignal (vedi GUIDA, passo 4). È un identificativo pubblico.
   //    NON incollare qui la API Key: quella va solo in Code.gs.
-  ONESIGNAL_APP_ID: "",
+  ONESIGNAL_APP_ID: "9bb6410e-cf49-4731-b9e8-29d550cedf81",
 
   // Promemoria solo a chi non ha appena compilato. Per farlo l'app comunica a
   // OneSignal SOLO l'orario dell'ultima compilazione (mai le risposte).
