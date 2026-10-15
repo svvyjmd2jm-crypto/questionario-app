@@ -55,16 +55,20 @@ const TESTI = {
       <b>dati relativi alla salute</b> (art. 9 GDPR).</li>
       <li><b>Dati tecnici della compilazione</b>: data e ora di inizio e invio, durata,
       se hai aperto il questionario da un promemoria, tipo di sistema (iOS/Android).</li>
-      <li><b>Codice partecipante</b>: un codice casuale (es. K7P3-QXMA) generato sul tuo
-      telefono, che collega tra loro le tue compilazioni.</li>
+      <li><b>ID partecipante</b> che crei tu (ultime due lettere del nome, ultime due del
+      cognome e ultime cifre del cellulare, es. TONO740). Serve a collegare le tue
+      compilazioni anche se cambi telefono o reinstalli l'app. Non contiene il tuo nome
+      né il tuo numero di telefono completi.</li>
+      <li><b>Codice dispositivo</b>: un codice casuale (es. K7P3-QXMA) generato sul tuo
+      telefono, usato per l'invio delle risposte e per la cancellazione dei dati.</li>
       <li><b>Registro del consenso</b>: data, ora e versione dell'informativa accettata.</li>
       <li><b>Per i promemoria</b>, solo se li attivi: un identificativo tecnico del
       dispositivo per le notifiche e l'orario dell'ultima compilazione. Il servizio di notifiche
       non riceve mai le tue risposte.</li>
     </ul>
     <p>Non raccogliamo nome, email, numero di telefono né posizione GPS.
-    I dati sono <b>pseudonimizzati</b>: il gruppo di ricerca non è in grado di sapere a chi
-    appartiene un codice.</p>
+    I dati sono <b>pseudonimizzati</b>: il gruppo di ricerca non usa l'ID per risalire alla
+    tua identità e non lo incrocia con altri elenchi di nomi o numeri di telefono.</p>
 
     <h3>4. Base giuridica</h3>
     <p>Il tuo consenso (art. 6, par. 1, lett. a GDPR) e, per i dati relativi alla salute,
@@ -102,7 +106,7 @@ const TESTI = {
     trattamento svolto prima della revoca.</p>
     <p><b>Come fare:</b> dalla sezione <i>Privacy e dati</i> dell'app puoi ritirare il consenso
     e cancellare subito tutte le tue risposte. Per gli altri diritti scrivi a ${c.EMAIL_STUDIO}
-    indicando il tuo codice partecipante, che trovi nell'app. Possiamo cancellare o fornirti i dati
+    indicando il tuo ID partecipante, che trovi nell'app. Possiamo cancellare o fornirti i dati
     collegati al codice ${c.TERMINE_REVOCA}. Dopo questa data i dati potrebbero
     essere già stati resi anonimi o inclusi in analisi aggregate (art. 17, par. 3, lett. d GDPR).</p>
     <p>Hai inoltre diritto di proporre reclamo al Garante per la protezione dei dati personali
@@ -110,7 +114,7 @@ const TESTI = {
 
     <h3>9. Sicurezza e dati sul telefono</h3>
     <p>I dati viaggiano su connessione cifrata (HTTPS). L'app non usa cookie. Sul telefono
-    conserva solo il codice partecipante, la data del consenso e le risposte in attesa di
+    conserva solo l'ID e il codice dispositivo, la data del consenso e le risposte in attesa di
     invio. Se ritiri il consenso, l'app cancella anche questi dati dal telefono.</p>
 
     <h3>10. Processi decisionali automatizzati</h3>

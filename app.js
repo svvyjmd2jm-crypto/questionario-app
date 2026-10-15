@@ -152,15 +152,19 @@
   }
 
   // ---------- stato ----------
-  let schermata = mem.get("revocato") ? "revocato" : (mem.get("consenso") ? "home" : "consenso");
+  let schermata = mem.get("revocato") ? "revocato"
+    : !mem.get("consenso") ? "consenso"
+    : !mem.get("id_partecipante") ? "id"
+    : "home";
   let indietroDa = "consenso"; // dove torna l'informativa
   let passo = 0;
   let risposte = {};
   let inizio = null;          // quando è iniziata la compilazione
   let daNotifica = false;     // aperta toccando un promemoria?
   let spunte = {};            // caselle del consenso spuntate
+  let consensoIl = null;      // momento in cui sono state spuntate le caselle
 
-  if (new URLSearchParams(location.search).get("da") === "notifica" && schermata === "home") {
+  if (new URLSearchParams(location.search).get("da") === "notifica" && schermata === "home") { // (solo se l'ID c'è già)
     schermata = "questionario";
     daNotifica = true;
     inizio = Date.now();
@@ -169,7 +173,7 @@
   // ---------- schermate ----------
   const SCHERMATE = {
     consenso: vConsenso, informativa: vInformativa, home: vHome, questionario: vQuestionario,
-    grazie: vGrazie, privacy: vPrivacy, conferma: vConferma, revocato: vRevocato,
+    grazie: vGrazie, privacy: vPrivacy, conferma: vConferma, revocato: vRevocato, id: vId,
   };
   function vai(s) { schermata = s; render(); }
   function render() {
@@ -206,21 +210,79 @@
       spunte[i.dataset.id] = i.checked;
       btn.disabled = !TESTI.CONSENSI.every((c) => spunte[c.id]);
     }));
+    btn.addEventListener("click", () => { consensoIl = Date.now(); vai("id"); });
+  }
+
+  // ---------- ID partecipante (es. TONO740) ----------
+  const soloLettere = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase().replace(/[^A-Z]/g, "");
+  const soloCifre = (t) => String(t || "").replace(/\D/g, "");
+
+  function vId() {
+    const nCifre = CONFIG.ID_CIFRE_TELEFONO || 3;
+    const primoAccesso = !mem.get("consenso");
+    app.innerHTML = `
+      <section class="scheda">
+        <h1>Il tuo ID partecipante</h1>
+        <p>Crea il tuo ID così: ti servirà per collegare le tue risposte anche se cambi telefono.</p>
+        <div class="campi-id">
+          <label for="id-nome"><span>Ultime 2 lettere del tuo <b>nome</b></span>
+            <input id="id-nome" maxlength="2" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="es. IO">
+          </label>
+          <label for="id-cognome"><span>Ultime 2 lettere del tuo <b>cognome</b></span>
+            <input id="id-cognome" maxlength="2" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="es. HI">
+          </label>
+          <label for="id-tel"><span>Ultime ${nCifre} cifre del tuo <b>cellulare</b></span>
+            <input id="id-tel" maxlength="${nCifre}" inputmode="numeric" autocomplete="off" placeholder="${"0".repeat(nCifre)}">
+          </label>
+        </div>
+        <p class="anteprima-id">Il tuo ID: <output id="id-anteprima">—</output></p>
+        <p class="piccolo">Esempio: Mario Bianchi, cellulare che finisce con …740 → <b>IOHI740</b>.
+          Usa sempre lo stesso ID.</p>
+        <p class="errore" id="errore" hidden></p>
+        <div class="navigazione">
+          ${primoAccesso ? `<button class="btn" id="indietro">Indietro</button>` : ""}
+          <button class="btn primario" id="salva" disabled>Conferma</button>
+        </div>
+      </section>`;
+    const nome = app.querySelector("#id-nome");
+    const cog = app.querySelector("#id-cognome");
+    const tel = app.querySelector("#id-tel");
+    const btn = app.querySelector("#salva");
+    const anteprima = app.querySelector("#id-anteprima");
+    const aggiorna = (e) => {
+      nome.value = soloLettere(nome.value); cog.value = soloLettere(cog.value); tel.value = soloCifre(tel.value);
+      const ok = nome.value.length === 2 && cog.value.length === 2 && tel.value.length === nCifre;
+      anteprima.textContent = ok ? nome.value + cog.value + tel.value : "—";
+      btn.disabled = !ok;
+      // passa da solo al campo successivo quando uno è completo
+      if (e && e.target === nome && nome.value.length === 2) cog.focus();
+      if (e && e.target === cog && cog.value.length === 2) tel.focus();
+    };
+    [nome, cog, tel].forEach((i) => i.addEventListener("input", aggiorna));
+    const ind = app.querySelector("#indietro");
+    if (ind) ind.addEventListener("click", () => vai("consenso"));
     btn.addEventListener("click", () => {
-      const ora = Date.now();
-      const codice = codicePartecipante();
-      mem.set("consenso", { il: ora, versione: CONFIG.VERSIONE_INFORMATIVA });
-      accoda({
-        tipo: "consenso",
-        codice: codice,
-        consenso_il: new Date(ora).toISOString(),
-        versione_informativa: CONFIG.VERSIONE_INFORMATIVA,
-        consensi_espressi: TESTI.CONSENSI.map((c) => c.id).join("; "),
-      });
-      inviaCoda();
+      const id = nome.value + cog.value + tel.value;
+      if (!/^[A-Z]{4}[0-9]+$/.test(id)) return;
+      mem.set("id_partecipante", id);
+      if (!mem.get("consenso")) {
+        const ora = consensoIl || Date.now();
+        mem.set("consenso", { il: ora, versione: CONFIG.VERSIONE_INFORMATIVA });
+        accoda({
+          tipo: "consenso",
+          codice: codicePartecipante(),
+          id_partecipante: id,
+          consenso_il: new Date(ora).toISOString(),
+          versione_informativa: CONFIG.VERSIONE_INFORMATIVA,
+          consensi_espressi: TESTI.CONSENSI.map((c) => c.id).join("; "),
+        });
+        inviaCoda();
+      }
       caricaOneSignal();
       vai("home");
     });
+    nome.focus();
   }
 
   function vInformativa() {
@@ -279,7 +341,7 @@
       </section>
       ${bloccoNotifiche()}
       <div class="piede">
-        <span>Codice partecipante: <b>${esc(codicePartecipante())}</b></span>
+        <span>Il tuo ID: <b>${esc(mem.get("id_partecipante") || "")}</b></span>
         <button class="link" id="privacy">Privacy e dati</button>
       </div>`;
     app.querySelector("#inizia").addEventListener("click", () => {
@@ -296,12 +358,13 @@
       <section class="scheda">
         <h1>Privacy e dati</h1>
         <dl class="dati">
-          <dt>Il tuo codice partecipante</dt><dd><b>${esc(codicePartecipante())}</b></dd>
+          <dt>Il tuo ID partecipante</dt><dd><b>${esc(mem.get("id_partecipante") || "—")}</b></dd>
+          <dt>Codice dispositivo</dt><dd>${esc(codicePartecipante())}</dd>
           <dt>Consenso dato il</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
           <dt>Versione informativa</dt><dd>${esc(cons.versione || "—")}</dd>
         </dl>
-        <p class="piccolo">Annota il codice: ti serve per esercitare i tuoi diritti (accesso,
-        rettifica, portabilità) scrivendo a ${esc(CONFIG.EMAIL_STUDIO)}.</p>
+        <p class="piccolo">Per esercitare i tuoi diritti (accesso, rettifica, portabilità)
+        scrivi a ${esc(CONFIG.EMAIL_STUDIO)} indicando il tuo ID partecipante.</p>
         <button class="link" id="leggi">Leggi l'informativa privacy completa</button>
       </section>
 
@@ -332,7 +395,7 @@
     app.innerHTML = `
       <section class="scheda pericolo">
         <h1>Sei sicuro/a?</h1>
-        <p>Le tue risposte (codice <b>${esc(codicePartecipante())}</b>) verranno cancellate
+        <p>Le tue risposte (ID <b>${esc(mem.get("id_partecipante") || codicePartecipante())}</b>) verranno cancellate
         definitivamente e non potranno essere recuperate.</p>
         <div class="navigazione">
           <button class="btn" id="annulla">Annulla</button>
@@ -353,6 +416,7 @@
     const richiesta = {
       tipo: "cancellazione",
       codice: codice,
+      id_partecipante: mem.get("id_partecipante") || "",
       onesignal_id: osId,
       richiesta_il: new Date().toISOString(),
     };
@@ -362,7 +426,7 @@
     if (OS) { try { await OS.User.PushSubscription.optOut(); } catch (e) {} }
     // Cancella tutto dal telefono; se l'invio non è riuscito conserva solo la richiesta
     mem.svuota();
-    mem.set("revocato", { il: Date.now(), codice: codice, confermata: ok });
+    mem.set("revocato", { il: Date.now(), codice: richiesta.id_partecipante || codice, confermata: ok });
     if (!ok) mem.set("cancellazione_in_sospeso", richiesta);
     vai("revocato");
   }
@@ -391,7 +455,7 @@
           : `<p>Hai ritirato il consenso e i dati sono stati cancellati da questo telefono.
              Non siamo riusciti a contattare l'archivio dello studio: riproveremo appena c'è
              connessione, finché tieni l'app installata.</p>
-             <p>Per sicurezza puoi anche scrivere a <b>${esc(CONFIG.EMAIL_STUDIO)}</b> indicando il codice
+             <p>Per sicurezza puoi anche scrivere a <b>${esc(CONFIG.EMAIL_STUDIO)}</b> indicando l'ID
              <b>${esc(rev.codice || "")}</b>.</p>`}
         <p>Grazie per il tempo che ci hai dedicato. Ora puoi disinstallare l'app.</p>
         <button class="link" id="ricomincia">Voglio partecipare di nuovo</button>
@@ -402,7 +466,7 @@
           `<p class="errore">Attendi che la cancellazione sia completata (serve connessione) prima di ripartecipare.</p>`);
         return;
       }
-      mem.svuota(); spunte = {}; vai("consenso");
+      mem.svuota(); spunte = {}; consensoIl = null; vai("consenso");
     });
   }
 
@@ -537,6 +601,7 @@
     const ora = Date.now();
     const record = {
       tipo: "risposta",
+      id_partecipante: mem.get("id_partecipante") || "",
       codice: codicePartecipante(),
       iniziato_il: new Date(inizio || ora).toISOString(),
       inviato_il: new Date(ora).toISOString(),

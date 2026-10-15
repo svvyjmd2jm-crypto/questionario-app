@@ -197,3 +197,14 @@ code { font-size: .85em; }
 .testo-lungo li { margin-bottom: 6px; }
 .testo-lungo p { margin: 0 0 10px; }
 .centro .link { display: block; margin: 8px auto 0; text-align: center; }
+
+/* --- ID partecipante --- */
+.campi-id { display: flex; flex-direction: column; gap: 14px; margin: 16px 0 8px; }
+.campi-id label { display: flex; flex-direction: column; gap: 6px; font-size: .95rem; }
+.campi-id input {
+  font: inherit; font-size: 1.3rem; letter-spacing: .2em; text-transform: uppercase;
+  font-variant-numeric: tabular-nums; width: 9ch; padding: 10px 12px;
+  color: var(--testo); background: var(--sfondo); border: 1px solid var(--bordo); border-radius: 12px;
+}
+.anteprima-id { font-size: 1.05rem; margin: 12px 0 4px; }
+.anteprima-id output { font-weight: 700; font-size: 1.4rem; letter-spacing: .08em; color: var(--primario); }

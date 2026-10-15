@@ -21,6 +21,10 @@ const CONFIG = {
   // arriveranno a tutti, anche a chi ha appena compilato.
   PROMEMORIA_SOLO_A_CHI_NON_HA_COMPILATO: true,
 
+  // ID partecipante: ultime 2 lettere del nome + ultime 2 del cognome
+  // + ultime N cifre del cellulare (es. TONO740). 3 cifre bastano.
+  ID_CIFRE_TELEFONO: 3,
+
   // ---------------- DATI PER L'INFORMATIVA PRIVACY ----------------
   // Cambia la versione ogni volta che modifichi l'informativa: viene
   // registrata insieme a ogni consenso.
