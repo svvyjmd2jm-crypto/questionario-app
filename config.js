@@ -25,6 +25,15 @@ const CONFIG = {
   // + ultime N cifre del cellulare (es. TONO740). 3 cifre bastano.
   ID_CIFRE_TELEFONO: 3,
 
+  // Fasce orarie (ora italiana) in cui si può compilare: al massimo una
+  // compilazione per fascia. DEVONO essere uguali a FASCE_ORARIE nello script Google.
+  FASCE_ORARIE: [
+    ["09:00", "11:00"],
+    ["13:00", "15:00"],
+    ["17:00", "19:00"],
+    ["21:00", "23:00"],
+  ],
+
   // ---------------- DATI PER L'INFORMATIVA PRIVACY ----------------
   // Cambia la versione ogni volta che modifichi l'informativa: viene
   // registrata insieme a ogni consenso.

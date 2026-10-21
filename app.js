@@ -191,13 +191,54 @@
   }
 
   const qp = new URLSearchParams(location.search);
+  let aperturaDaNotifica = false;
   if (qp.get("da") === "notifica" && schermata === "home") { // (solo se l'ID c'è già)
-    iniziaQuestionario();
-    schermata = "questionario";
-    daNotifica = true;
+    aperturaDaNotifica = true;
     const t = Number(qp.get("t"));
     notificaInviata = t > 0 ? t : null;
   }
+
+  // ---------- fasce orarie (ora italiana) ----------
+  // Ritorna data e minuti di adesso nel fuso Europe/Rome, qualunque sia il fuso del telefono
+  function adessoRoma(ms) {
+    const parti = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date(ms || Date.now()));
+    const g = (t) => parti.find((x) => x.type === t).value;
+    return { data: `${g("year")}-${g("month")}-${g("day")}`, minuti: Number(g("hour")) * 60 + Number(g("minute")) };
+  }
+  const inMinuti = (hhmm) => { const [h, m] = String(hhmm).split(":"); return Number(h) * 60 + Number(m || 0); };
+  const FASCE = (CONFIG.FASCE_ORARIE || []).map((f, i) => ({
+    numero: i + 1, da: f[0], a: f[1], etichetta: f[0] + "-" + f[1], inizio: inMinuti(f[0]), fine: inMinuti(f[1]),
+  }));
+  // Fascia in corso adesso (o null)
+  function fasciaCorrente(ms) {
+    const r = adessoRoma(ms);
+    const f = FASCE.find((x) => r.minuti >= x.inizio && r.minuti < x.fine);
+    return f ? Object.assign({ data: r.data }, f) : null;
+  }
+  function prossimaFascia() {
+    const r = adessoRoma();
+    return FASCE.find((x) => x.inizio > r.minuti) || FASCE[0] || null;
+  }
+  const chiaveFascia = (f) => f.data + "|" + f.etichetta;
+  function fasciaGiaCompilata(f) {
+    return !!f && mem.get("fasce_compilate", []).includes(chiaveFascia(f));
+  }
+  function segnaFasciaCompilata(f) {
+    const l = mem.get("fasce_compilate", []).concat(chiaveFascia(f));
+    mem.set("fasce_compilate", l.slice(-60));
+  }
+  // Si può compilare adesso? (senza fasce configurate: sempre)
+  function statoCompilazione() {
+    if (!FASCE.length) return { ok: true, fascia: null };
+    const f = fasciaCorrente();
+    if (!f) return { ok: false, motivo: "fuori", prossima: prossimaFascia() };
+    if (fasciaGiaCompilata(f)) return { ok: false, motivo: "fatta", fascia: f, prossima: prossimaFascia() };
+    return { ok: true, fascia: f };
+  }
+  let fasciaQuestionario = null; // fascia in cui è iniziata la compilazione in corso
 
   // ---------- schermate ----------
   const SCHERMATE = {
@@ -314,6 +355,16 @@
     nome.focus();
   }
 
+  function avviaQuestionario(dallaNotifica) {
+    const st = statoCompilazione();
+    if (!st.ok) { vai("home"); return; }
+    fasciaQuestionario = st.fascia;
+    iniziaQuestionario();
+    daNotifica = !!dallaNotifica;
+    if (!dallaNotifica) notificaInviata = null;
+    vai("questionario");
+  }
+
   function vInformativa() {
     app.innerHTML = `
       <section class="scheda testo-lungo">
@@ -363,17 +414,35 @@
       </div>`;
   }
 
+  function bloccoCompilazione(st) {
+    if (st.ok) {
+      return `
+        ${st.fascia ? `<p class="fascia-attiva">Fascia ${esc(st.fascia.da)}–${esc(st.fascia.a)}: puoi compilare fino alle ${esc(st.fascia.a)}.</p>` : ""}
+        <button class="btn primario grande" id="inizia">Compila il questionario</button>`;
+    }
+    const pross = st.prossima ? `La prossima fascia è <b>${esc(st.prossima.da)}–${esc(st.prossima.a)}</b>.` : "";
+    if (st.motivo === "fatta") {
+      return `
+        <div class="ok-box"><b>Hai già fatto la compilazione in questa fascia oraria</b>
+        (${esc(st.fascia.da)}–${esc(st.fascia.a)}), quindi non puoi farne un'altra. ${pross}</div>`;
+    }
+    return `
+      <div class="avviso">Il questionario si può compilare solo nelle fasce orarie
+      ${FASCE.map((f) => esc(f.da) + "–" + esc(f.a)).join(", ")}. ${pross}</div>`;
+  }
+
   function vHome() {
     const ultima = mem.get("ultima_compilazione");
     const n = mem.get("conteggio", 0);
     const inCoda = mem.get("coda", []).filter((r) => r.tipo === "risposta").length;
+    const st = statoCompilazione();
     app.innerHTML = `
       <section class="scheda">
         <h1>Ciao!</h1>
         <p>${ultima
           ? `Ultima compilazione: <b>${esc(formattaData(ultima))}</b><br>Compilazioni totali: <b>${n}</b>`
           : "Non hai ancora compilato il questionario."}</p>
-        <button class="btn primario grande" id="inizia">Compila il questionario</button>
+        ${bloccoCompilazione(st)}
         ${inCoda ? `<p class="piccolo">${inCoda} compilazione/i in attesa di invio (verranno inviate appena c'è connessione).</p>` : ""}
       </section>
       ${bloccoNotifiche()}
@@ -381,9 +450,8 @@
         <span>Il tuo ID: <b>${esc(mem.get("id_partecipante") || "")}</b></span>
         <button class="link" id="privacy">Privacy e dati</button>
       </div>`;
-    app.querySelector("#inizia").addEventListener("click", () => {
-      iniziaQuestionario(); daNotifica = false; notificaInviata = null; vai("questionario");
-    });
+    const bi = app.querySelector("#inizia");
+    if (bi) bi.addEventListener("click", () => avviaQuestionario(false));
     const bn = app.querySelector("#notifiche");
     if (bn) bn.addEventListener("click", attivaNotifiche);
     const br = app.querySelector("#riprova");
@@ -530,13 +598,14 @@
         const min = d.min ?? 0, max = d.max ?? 100;
         const toccato = typeof v === "number";
         const et = d.etichette || ["Per nulla", "Moltissimo"];
+        // Scala visuo-analogica: nessun numero visibile, solo le etichette agli estremi
         return `
           <div class="cursore ${toccato ? "" : "vuoto"}">
-            <output id="valore" class="valore">${toccato ? v + "%" : "Tocca o trascina sulla barra"}</output>
+            <p id="valore" class="istruzione">${toccato ? "" : "Tocca o trascina sulla barra"}</p>
             <input type="range" id="campo-range" min="${min}" max="${max}" step="1"
               value="${toccato ? v : Math.round((min + max) / 2)}"
-              aria-label="${esc(d.testo)}" aria-valuetext="${toccato ? v + "%" : "nessuna risposta"}">
-            <div class="etichette"><span>${min}% · ${esc(et[0])}</span><span>${max}% · ${esc(et[1])}</span></div>
+              aria-label="${esc(d.testo)}" aria-valuetext="${toccato ? "posizione scelta" : "nessuna risposta"}">
+            <div class="etichette"><span>${esc(et[0])}</span><span>${esc(et[1])}</span></div>
           </div>`;
       }
       case "scelta":
@@ -610,8 +679,8 @@
         const n = Number(range.value);
         risposte[d.id] = n;
         range.closest(".cursore").classList.remove("vuoto");
-        app.querySelector("#valore").textContent = n + "%";
-        range.setAttribute("aria-valuetext", n + "%");
+        app.querySelector("#valore").textContent = "";
+        range.setAttribute("aria-valuetext", "posizione scelta");
         app.querySelector("#errore").hidden = true;
       };
       ["input", "change", "click"].forEach((ev) => range.addEventListener(ev, segna));
@@ -651,6 +720,9 @@
       iniziato_il: new Date(inizio || ora).toISOString(),
       inviato_il: new Date(ora).toISOString(),
       durata_totale_secondi: sec(ora - (inizio || ora)),
+      data_fascia: fasciaQuestionario ? fasciaQuestionario.data : adessoRoma(inizio || ora).data,
+      fascia: fasciaQuestionario ? fasciaQuestionario.etichetta : "",
+      numero_fascia: fasciaQuestionario ? fasciaQuestionario.numero : "",
       sistema: sistema(),
     };
     DOMANDE.forEach((d) => {
@@ -660,6 +732,8 @@
     // tempo di risposta di ogni singola domanda (secondi)
     DOMANDE.forEach((d) => { record["tempo_" + d.id] = sec(tempi[d.id] || 0); });
     accoda(record);
+    if (fasciaQuestionario) segnaFasciaCompilata(fasciaQuestionario);
+    fasciaQuestionario = null;
     risposte = {}; // non tenere le risposte in memoria oltre il necessario
     mem.set("ultima_compilazione", ora);
     mem.set("conteggio", mem.get("conteggio", 0) + 1);
@@ -685,7 +759,9 @@
 
   // ---------- avvio ----------
   if (mem.get("consenso") && !mem.get("revocato")) caricaOneSignal();
-  render();
+  if (aperturaDaNotifica) avviaQuestionario(true); else render();
+  // la home si aggiorna da sola quando inizia o finisce una fascia
+  setInterval(() => { if (schermata === "home") render(); }, 30000);
   inviaCoda();
   riprovaCancellazione();
 })();

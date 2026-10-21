@@ -208,3 +208,7 @@ code { font-size: .85em; }
 }
 .anteprima-id { font-size: 1.05rem; margin: 12px 0 4px; }
 .anteprima-id output { font-weight: 700; font-size: 1.4rem; letter-spacing: .08em; color: var(--primario); }
+
+/* --- slider senza numeri e fasce --- */
+.cursore .istruzione { margin: 0; min-height: 1.4em; text-align: center; color: var(--tenue); font-size: .95rem; }
+.fascia-attiva { font-size: .92rem; color: var(--tenue); margin: 0 0 10px; }
