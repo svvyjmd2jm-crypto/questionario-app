@@ -175,6 +175,9 @@
   let consensoIl = null;      // momento in cui sono state spuntate le caselle
   let notificaInviata = null; // quando è partita la notifica che ha aperto l'app
   let tempi = {};             // millisecondi passati su ogni domanda
+  let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
+  let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
+  const VERSIONE_APP = "9";
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
   // Cronometro per domanda: somma il tempo passato sulla domanda corrente
@@ -186,7 +189,7 @@
     tDomanda = performance.now();
   }
   function iniziaQuestionario() {
-    passo = 0; risposte = {}; tempi = {};
+    passo = 0; risposte = {}; tempi = {}; dettagli = {}; ultimoPassoMostrato = -1;
     inizio = Date.now(); tDomanda = performance.now();
   }
 
@@ -207,6 +210,16 @@
     }).formatToParts(new Date(ms || Date.now()));
     const g = (t) => parti.find((x) => x.type === t).value;
     return { data: `${g("year")}-${g("month")}-${g("day")}`, minuti: Number(g("hour")) * 60 + Number(g("minute")) };
+  }
+  // "2026-10-22 14:43:05.123" in ora italiana (più leggibile nel foglio)
+  function oraRoma(ms) {
+    if (!ms) return "";
+    const parti = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date(ms));
+    const g = (t) => parti.find((x) => x.type === t).value;
+    return `${g("year")}-${g("month")}-${g("day")} ${g("hour")}:${g("minute")}:${g("second")}.${String(ms % 1000).padStart(3, "0")}`;
   }
   const inMinuti = (hhmm) => { const [h, m] = String(hhmm).split(":"); return Number(h) * 60 + Number(m || 0); };
   const FASCE = (CONFIG.FASCE_ORARIE || []).map((f, i) => ({
@@ -415,20 +428,12 @@
   }
 
   function bloccoCompilazione(st) {
-    if (st.ok) {
-      return `
-        ${st.fascia ? `<p class="fascia-attiva">Fascia ${esc(st.fascia.da)}–${esc(st.fascia.a)}: puoi compilare fino alle ${esc(st.fascia.a)}.</p>` : ""}
-        <button class="btn primario grande" id="inizia">Compila il questionario</button>`;
-    }
-    const pross = st.prossima ? `La prossima fascia è <b>${esc(st.prossima.da)}–${esc(st.prossima.a)}</b>.` : "";
+    if (st.ok) return `<button class="btn primario grande" id="inizia">Compila il questionario</button>`;
     if (st.motivo === "fatta") {
-      return `
-        <div class="ok-box"><b>Hai già fatto la compilazione in questa fascia oraria</b>
-        (${esc(st.fascia.da)}–${esc(st.fascia.a)}), quindi non puoi farne un'altra. ${pross}</div>`;
+      return `<div class="ok-box"><b>Grazie!</b> Hai già compilato il questionario.
+        Aspetta la prossima notifica.</div>`;
     }
-    return `
-      <div class="avviso">Il questionario si può compilare solo nelle fasce orarie
-      ${FASCE.map((f) => esc(f.da) + "–" + esc(f.a)).join(", ")}. ${pross}</div>`;
+    return `<div class="ok-box"><b>Grazie!</b> Aspetta la prossima notifica per compilare il questionario.</div>`;
   }
 
   function vHome() {
@@ -598,14 +603,18 @@
         const min = d.min ?? 0, max = d.max ?? 100;
         const toccato = typeof v === "number";
         const et = d.etichette || ["Per nulla", "Moltissimo"];
-        // Scala visuo-analogica: nessun numero visibile, solo le etichette agli estremi
+        // Scala visuo-analogica: solo 0 e 100 agli estremi, il valore scelto non si vede
+        void et;
         return `
           <div class="cursore ${toccato ? "" : "vuoto"}">
-            <p id="valore" class="istruzione">${toccato ? "" : "Tocca o trascina sulla barra"}</p>
-            <input type="range" id="campo-range" min="${min}" max="${max}" step="1"
-              value="${toccato ? v : Math.round((min + max) / 2)}"
-              aria-label="${esc(d.testo)}" aria-valuetext="${toccato ? "posizione scelta" : "nessuna risposta"}">
-            <div class="etichette"><span>${esc(et[0])}</span><span>${esc(et[1])}</span></div>
+            <p id="valore" class="istruzione">${toccato ? "" : "Tocca la barra"}</p>
+            <div class="riga-vas">
+              <span class="ancora" aria-hidden="true">${min}</span>
+              <input type="range" id="campo-range" min="${min}" max="${max}" step="1"
+                value="${toccato ? v : partenzaSlider(d)}"
+                aria-label="${esc(d.testo)}" aria-valuetext="${toccato ? "posizione scelta" : "nessuna risposta"}">
+              <span class="ancora" aria-hidden="true">${max}</span>
+            </div>
           </div>`;
       }
       case "scelta":
@@ -628,6 +637,21 @@
     return "";
   }
 
+  // posizione (invisibile) da cui parte il cursore
+  const partenzaSlider = (d) => Math.round(((d.min ?? 0) + (d.max ?? 100)) / 2);
+
+  // registra il primo tocco e ogni modifica di una risposta
+  function annotaTocco(d, valore, conta) {
+    const x = dettagli[d.id];
+    if (!x) return;
+    if (!x.primoTocco) { x.primoTocco = Date.now(); x.valoreIniziale = valore; }
+    if (conta) {
+      x.modifiche += 1;
+      // traccia di ogni modifica: secondi dalla comparsa della domanda e valore scelto
+      if (x.traccia.length < 100) x.traccia.push(((Date.now() - x.comparsa) / 1000).toFixed(1) + "s=" + valore);
+    }
+  }
+
   function rispostaValida(d) {
     const v = risposte[d.id];
     if (d.obbligatoria === false) return true;
@@ -643,6 +667,13 @@
 
   function vQuestionario() {
     const d = DOMANDE[passo];
+    if (!dettagli[d.id]) {
+      dettagli[d.id] = {
+        comparsa: Date.now(), primoTocco: null, risposta: null, modifiche: 0, visite: 0, traccia: [],
+        valorePartenza: d.tipo === "percentuale" ? partenzaSlider(d) : "", valoreIniziale: "",
+      };
+    }
+    if (ultimoPassoMostrato !== passo) { dettagli[d.id].visite += 1; ultimoPassoMostrato = passo; }
     const ultimo = passo === DOMANDE.length - 1;
     const perc = Math.round((passo / DOMANDE.length) * 100);
     app.innerHTML = `
@@ -662,22 +693,25 @@
       </div>`;
 
     app.querySelectorAll(".tasto").forEach((b) => b.addEventListener("click", () => {
-      risposte[d.id] = Number(b.dataset.v); render();
+      risposte[d.id] = Number(b.dataset.v); annotaTocco(d, risposte[d.id], true); render();
     }));
     app.querySelectorAll(".opzione:not(.multi)").forEach((b) => b.addEventListener("click", () => {
-      risposte[d.id] = b.dataset.v; render();
+      risposte[d.id] = b.dataset.v; annotaTocco(d, risposte[d.id], true); render();
     }));
     app.querySelectorAll(".opzione.multi").forEach((b) => b.addEventListener("click", () => {
       const sel = Array.isArray(risposte[d.id]) ? risposte[d.id] : [];
       const v = b.dataset.v;
       risposte[d.id] = sel.includes(v) ? sel.filter((x) => x !== v) : sel.concat(v);
+      annotaTocco(d, risposte[d.id].join("; "), true);
       b.classList.toggle("scelto");
     }));
     const range = app.querySelector("#campo-range");
     if (range) {
-      const segna = () => {
+      const segna = (ev) => {
         const n = Number(range.value);
         risposte[d.id] = n;
+        // primo tocco: valore iniziale; ogni rilascio del dito conta come una modifica
+        annotaTocco(d, n, ev && ev.type === "change");
         range.closest(".cursore").classList.remove("vuoto");
         app.querySelector("#valore").textContent = "";
         range.setAttribute("aria-valuetext", "posizione scelta");
@@ -702,6 +736,7 @@
         return;
       }
       fermaCronometro();
+      dettagli[d.id].risposta = Date.now(); // risposta definitiva (ultimo "Avanti")
       if (ultimo) { concludi(); } else { passo++; render(); }
     });
   }
@@ -715,15 +750,18 @@
       id_partecipante: mem.get("id_partecipante") || "",
       codice: codicePartecipante(),
       da_notifica: daNotifica ? "si" : "no",
-      notifica_inviata_il: notificaInviata ? new Date(notificaInviata).toISOString() : "",
+      notifica_inviata_il: oraRoma(notificaInviata),
       latenza_dalla_notifica_secondi: notificaInviata ? Math.max(0, Math.round(((inizio || ora) - notificaInviata) / 1000)) : "",
-      iniziato_il: new Date(inizio || ora).toISOString(),
-      inviato_il: new Date(ora).toISOString(),
+      aperto_dalla_notifica_il: daNotifica ? oraRoma(inizio || ora) : "",
+      iniziato_il: oraRoma(inizio || ora),
+      inviato_il: oraRoma(ora),
       durata_totale_secondi: sec(ora - (inizio || ora)),
       data_fascia: fasciaQuestionario ? fasciaQuestionario.data : adessoRoma(inizio || ora).data,
       fascia: fasciaQuestionario ? fasciaQuestionario.etichetta : "",
       numero_fascia: fasciaQuestionario ? fasciaQuestionario.numero : "",
       sistema: sistema(),
+      fuso_orario_telefono: (Intl.DateTimeFormat().resolvedOptions().timeZone || ""),
+      versione_app: VERSIONE_APP,
     };
     DOMANDE.forEach((d) => {
       const v = risposte[d.id];
@@ -731,6 +769,27 @@
     });
     // tempo di risposta di ogni singola domanda (secondi)
     DOMANDE.forEach((d) => { record["tempo_" + d.id] = sec(tempi[d.id] || 0); });
+    // dettaglio di ogni domanda: una riga per domanda nella linguetta "Dettaglio risposte"
+    record.dettaglio = DOMANDE.map((d, i) => {
+      const x = dettagli[d.id] || {};
+      const v = risposte[d.id];
+      return {
+        numero_domanda: i + 1,
+        domanda: d.id,
+        comparsa_il: oraRoma(x.comparsa),
+        primo_tocco_il: oraRoma(x.primoTocco),
+        risposta_definitiva_il: oraRoma(x.risposta),
+        valore_partenza: x.valorePartenza ?? "",
+        valore_iniziale: x.valoreIniziale ?? "",
+        valore_finale: Array.isArray(v) ? v.join("; ") : (v ?? ""),
+        numero_modifiche: x.modifiche || 0,
+        traccia_modifiche: (x.traccia || []).join(" | "),
+        visite_alla_domanda: x.visite || 0,
+        da_comparsa_a_primo_tocco_secondi: x.primoTocco ? sec(x.primoTocco - x.comparsa) : "",
+        da_primo_tocco_a_risposta_secondi: x.primoTocco && x.risposta ? sec(x.risposta - x.primoTocco) : "",
+        durata_totale_domanda_secondi: sec(tempi[d.id] || 0),
+      };
+    });
     accoda(record);
     if (fasciaQuestionario) segnaFasciaCompilata(fasciaQuestionario);
     fasciaQuestionario = null;
@@ -738,7 +797,7 @@
     mem.set("ultima_compilazione", ora);
     mem.set("conteggio", mem.get("conteggio", 0) + 1);
     aggiornaTagCompilazione();
-    daNotifica = false; notificaInviata = null; tempi = {}; tDomanda = null;
+    daNotifica = false; notificaInviata = null; tempi = {}; dettagli = {}; tDomanda = null;
     vai("grazie");
     await inviaCoda();
   }
