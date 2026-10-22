@@ -177,7 +177,8 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "9";
+  const VERSIONE_APP = "10";
+  let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
   // Cronometro per domanda: somma il tempo passato sulla domanda corrente
@@ -189,7 +190,7 @@
     tDomanda = performance.now();
   }
   function iniziaQuestionario() {
-    passo = 0; risposte = {}; tempi = {}; dettagli = {}; ultimoPassoMostrato = -1;
+    passo = 0; risposte = {}; tempi = {}; dettagli = {}; ultimoPassoMostrato = -1; movimenti = [];
     inizio = Date.now(); tDomanda = performance.now();
   }
 
@@ -640,6 +641,22 @@
   // posizione (invisibile) da cui parte il cursore
   const partenzaSlider = (d) => Math.round(((d.min ?? 0) + (d.max ?? 100)) / 2);
 
+  // registra un evento dello slider (una riga nella linguetta "Movimenti slider")
+  function annotaMovimento(d, evento, valore) {
+    const x = dettagli[d.id];
+    if (!x || movimenti.length >= 4000) return;
+    const t = Date.now();
+    movimenti.push({
+      numero_domanda: DOMANDE.indexOf(d) + 1,
+      domanda: d.id,
+      evento: evento,
+      ora: oraRoma(t),
+      secondi_dalla_comparsa: Math.round((t - x.comparsa) / 10) / 100,
+      secondi_dal_primo_tocco: x.primoTocco ? Math.round((t - x.primoTocco) / 10) / 100 : "",
+      valore: valore === null || valore === undefined ? "" : valore,
+    });
+  }
+
   // registra il primo tocco e ogni modifica di una risposta
   function annotaTocco(d, valore, conta) {
     const x = dettagli[d.id];
@@ -670,6 +687,7 @@
     if (!dettagli[d.id]) {
       dettagli[d.id] = {
         comparsa: Date.now(), primoTocco: null, risposta: null, modifiche: 0, visite: 0, traccia: [],
+        tocchi: 0, msTrascinamento: 0, giu: null, ultimoValore: null,
         valorePartenza: d.tipo === "percentuale" ? partenzaSlider(d) : "", valoreIniziale: "",
       };
     }
@@ -718,6 +736,23 @@
         app.querySelector("#errore").hidden = true;
       };
       ["input", "change", "click"].forEach((ev) => range.addEventListener(ev, segna));
+      // percorso completo del dito: tocco -> ogni valore attraversato -> rilascio
+      const x = dettagli[d.id];
+      range.addEventListener("pointerdown", () => {
+        x.tocchi += 1; x.giu = Date.now();
+        annotaMovimento(d, "tocco", "");
+      });
+      range.addEventListener("input", () => {
+        const n = Number(range.value);
+        if (n !== x.ultimoValore) { x.ultimoValore = n; annotaMovimento(d, "spostamento", n); }
+      });
+      const rilascio = () => {
+        if (x.giu === null) return;
+        x.msTrascinamento += Date.now() - x.giu; x.giu = null;
+        annotaMovimento(d, "rilascio", risposte[d.id] ?? "");
+      };
+      range.addEventListener("pointerup", rilascio);
+      range.addEventListener("pointercancel", rilascio);
     }
     const campo = app.querySelector("#campo");
     if (campo) campo.addEventListener("input", () => (risposte[d.id] = campo.value));
@@ -737,6 +772,7 @@
       }
       fermaCronometro();
       dettagli[d.id].risposta = Date.now(); // risposta definitiva (ultimo "Avanti")
+      if (d.tipo === "percentuale") annotaMovimento(d, "conferma", risposte[d.id]);
       if (ultimo) { concludi(); } else { passo++; render(); }
     });
   }
@@ -785,11 +821,14 @@
         numero_modifiche: x.modifiche || 0,
         traccia_modifiche: (x.traccia || []).join(" | "),
         visite_alla_domanda: x.visite || 0,
+        numero_tocchi_barra: x.tocchi || 0,
+        tempo_dito_sulla_barra_secondi: x.msTrascinamento ? sec(x.msTrascinamento) : (d.tipo === "percentuale" ? 0 : ""),
         da_comparsa_a_primo_tocco_secondi: x.primoTocco ? sec(x.primoTocco - x.comparsa) : "",
         da_primo_tocco_a_risposta_secondi: x.primoTocco && x.risposta ? sec(x.risposta - x.primoTocco) : "",
         durata_totale_domanda_secondi: sec(tempi[d.id] || 0),
       };
     });
+    record.movimenti = movimenti.slice();
     accoda(record);
     if (fasciaQuestionario) segnaFasciaCompilata(fasciaQuestionario);
     fasciaQuestionario = null;
@@ -797,7 +836,7 @@
     mem.set("ultima_compilazione", ora);
     mem.set("conteggio", mem.get("conteggio", 0) + 1);
     aggiornaTagCompilazione();
-    daNotifica = false; notificaInviata = null; tempi = {}; dettagli = {}; tDomanda = null;
+    daNotifica = false; notificaInviata = null; tempi = {}; dettagli = {}; movimenti = []; tDomanda = null;
     vai("grazie");
     await inviaCoda();
   }
