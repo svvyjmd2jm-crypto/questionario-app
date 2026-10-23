@@ -810,7 +810,7 @@
       </div>
       <p class="piccolo">${t("domanda_n", passo + 1, DOMANDE.length)}</p>
       <section class="scheda">
-        ${d.premessa ? `<p class="premessa">${esc(tx(d.premessa))}</p>` : ""}
+        ${tx(d.premessa) ? `<p class="premessa">${esc(tx(d.premessa))}</p>` : ""}
         <h2>${esc(tx(d.testo))}</h2>
         ${campoDomanda(d)}
         <p class="errore" id="errore" hidden></p>
