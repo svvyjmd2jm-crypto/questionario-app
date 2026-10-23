@@ -238,3 +238,11 @@ main { flex: 1; width: 100%; }
 .btn-lingua:focus-visible { outline: 2px solid var(--primario); outline-offset: 2px; }
 .scelta-lingua { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
 .sottotitolo-lingua { font-size: 1rem; font-weight: 500; color: var(--tenue); }
+
+.avviso-icona { border: 1px solid var(--primario); background: var(--primario-chiaro); }
+.avviso-icona-testa { display: flex; align-items: center; gap: 12px; }
+.avviso-icona-testa img { border-radius: 12px; flex: none; }
+.avviso-icona-testa h2 { margin: 0; font-size: 1.1rem; }
+.avviso-icona ol { padding-left: 1.2em; margin: 8px 0; }
+.avviso-icona li { margin-bottom: 6px; }
+.avviso-icona .btn.secondario { background: var(--carta); border: 1px solid var(--bordo); width: 100%; }
