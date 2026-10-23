@@ -206,7 +206,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "12";
+  const VERSIONE_APP = "13";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -230,6 +230,8 @@
     const t = Number(qp.get("t"));
     notificaInviata = t > 0 ? t : null;
   }
+  // la notifica toccata sblocca il questionario della sua fascia
+  const tNotificaUrl = Number(qp.get("t"));
 
   // ---------- fasce orarie (ora italiana) ----------
   // Ritorna data e minuti di adesso nel fuso Europe/Rome, qualunque sia il fuso del telefono
@@ -266,20 +268,64 @@
     return FASCE.find((x) => x.inizio > r.minuti) || FASCE[0] || null;
   }
   const chiaveFascia = (f) => f.data + "|" + f.etichetta;
+
+  // ---------- notifiche già partite ----------
+  // Servono solo per registrare nel foglio a che ora è partita la notifica della fascia,
+  // anche quando la persona apre l'app dall'icona. NON bloccano la compilazione.
+  // Vengono da: notifica toccata (parametro t), oppure dallo script Google,
+  // che comunica solo quelle già partite oggi (mai quelle future).
+  function notificheNote() { return mem.get("notifiche_note", {}); }
+  function annotaNotifica(ms) {
+    const f = fasciaCorrente(ms);
+    if (!f) return;
+    const n = notificheNote();
+    const k = chiaveFascia(f);
+    if (!n[k] || ms > n[k]) n[k] = ms;          // vale l'ultima notifica della fascia
+    // tiene solo gli ultimi giorni
+    const chiavi = Object.keys(n).sort().slice(-40);
+    const pulite = {}; chiavi.forEach((c) => { pulite[c] = n[c]; });
+    mem.set("notifiche_note", pulite);
+  }
+  const notificaDellaFascia = (f) => (f ? notificheNote()[chiaveFascia(f)] || null : null);
+
+  let ultimoControllo = 0;
+  async function controllaNotificheServer(forza) {
+    if (!CONFIG.URL_APPS_SCRIPT || !FASCE.length) return;
+    const f = fasciaCorrente();
+    if (!f || (!forza && notificaDellaFascia(f))) return;
+    if (!forza && Date.now() - ultimoControllo < 45000) return;
+    ultimoControllo = Date.now();
+    try {
+      const r = await fetch(CONFIG.URL_APPS_SCRIPT + "?azione=notifiche", { cache: "no-store" });
+      const j = await r.json();
+      let nuove = false;
+      (j.inviate || []).forEach((x) => {
+        const ms = Number(x.inviata_il);
+        if (ms > 0 && ms <= Date.now() + 60000) {
+          const prima = notificaDellaFascia(fasciaCorrente(ms));
+          annotaNotifica(ms);
+          if (prima !== notificaDellaFascia(fasciaCorrente(ms))) nuove = true;
+        }
+      });
+      if (nuove && schermata === "home") render();
+    } catch (e) { /* offline: si riprova più tardi */ }
+  }
+
+  // compilazioni fatte: al massimo una per fascia
   function fasciaGiaCompilata(f) {
     return !!f && mem.get("fasce_compilate", []).includes(chiaveFascia(f));
   }
   function segnaFasciaCompilata(f) {
     const l = mem.get("fasce_compilate", []).concat(chiaveFascia(f));
-    mem.set("fasce_compilate", l.slice(-60));
+    mem.set("fasce_compilate", l.slice(-80));
   }
-  // Si può compilare adesso? (senza fasce configurate: sempre)
+  // Si può compilare adesso? Bloccato SOLO fuori fascia o se in questa fascia si è già compilato.
   function statoCompilazione() {
     if (!FASCE.length) return { ok: true, fascia: null };
     const f = fasciaCorrente();
     if (!f) return { ok: false, motivo: "fuori", prossima: prossimaFascia() };
     if (fasciaGiaCompilata(f)) return { ok: false, motivo: "fatta", fascia: f, prossima: prossimaFascia() };
-    return { ok: true, fascia: f };
+    return { ok: true, fascia: f, notifica: notificaDellaFascia(f) };
   }
   let fasciaQuestionario = null; // fascia in cui è iniziata la compilazione in corso
 
@@ -438,7 +484,8 @@
     fasciaQuestionario = st.fascia;
     iniziaQuestionario();
     daNotifica = !!dallaNotifica;
-    if (!dallaNotifica) notificaInviata = null;
+    // orario della notifica che ha sbloccato questa compilazione (anche se aperta dall'icona)
+    notificaInviata = st.notifica || notificaInviata || null;
     vai("questionario");
   }
 
@@ -853,6 +900,7 @@
       codice: codicePartecipante(),
       da_notifica: daNotifica ? "si" : "no",
       notifica_inviata_il: oraRoma(notificaInviata),
+      id_notifica: notificaInviata || "",
       latenza_dalla_notifica_secondi: notificaInviata ? Math.max(0, Math.round(((inizio || ora) - notificaInviata) / 1000)) : "",
       aperto_dalla_notifica_il: daNotifica ? oraRoma(inizio || ora) : "",
       iniziato_il: oraRoma(inizio || ora),
@@ -935,9 +983,16 @@
 
   // ---------- avvio ----------
   if (mem.get("consenso") && !mem.get("revocato")) caricaOneSignal();
+  if (tNotificaUrl > 0) annotaNotifica(tNotificaUrl);
   if (aperturaDaNotifica) avviaQuestionario(true); else render();
-  // la home si aggiorna da sola quando inizia o finisce una fascia
-  setInterval(() => { if (schermata === "home") render(); }, 30000);
+  controllaNotificheServer(true);
+  // la home si aggiorna da sola: fasce che iniziano/finiscono e notifiche appena partite
+  setInterval(() => {
+    if (schermata === "home") { render(); controllaNotificheServer(false); }
+  }, 30000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && schermata === "home") { controllaNotificheServer(true); render(); }
+  });
   inviaCoda();
   riprovaCancellazione();
 })();
