@@ -183,7 +183,7 @@
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   function formattaData(ms) {
-    return new Date(ms).toLocaleString(L() === "en" ? "en-GB" : "it-IT", {
+    return new Date(ms).toLocaleString(({ it: "it-IT", en: "en-GB", el: "el-GR" })[L()] || "it-IT", {
       weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
     });
   }
@@ -206,7 +206,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "13";
+  const VERSIONE_APP = "14";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -346,7 +346,7 @@
     const bl = document.getElementById("cambia-lingua");
     if (bl) {
       bl.hidden = !lingua || schermata === "questionario" || schermata === "lingua";
-      bl.textContent = L() === "it" ? "EN" : "IT";
+      bl.textContent = "🌐 " + L().toUpperCase();
       bl.setAttribute("aria-label", t("cambia_lingua"));
     }
     SCHERMATE[schermata]();
@@ -362,7 +362,7 @@
   function vLingua() {
     app.innerHTML = `
       <section class="scheda centro">
-        <h1>Scegli la lingua<br><span class="sottotitolo-lingua">Choose your language</span></h1>
+        <h1>Scegli la lingua<br><span class="sottotitolo-lingua">Choose your language · Επίλεξε γλώσσα</span></h1>
         <div class="scelta-lingua">
           ${LINGUE_DISPONIBILI.map((l) => `
             <button class="btn ${lingua === l.codice ? "primario" : "secondario"} grande" data-lingua="${l.codice}">${l.nome}</button>`).join("")}
@@ -407,8 +407,11 @@
   }
 
   // ---------- ID partecipante (es. TONO740) ----------
+  // lettere greche -> lettere latine (una per una), così l'ID resta sempre A-Z
+  const GRECO = { "Α":"A","Β":"V","Γ":"G","Δ":"D","Ε":"E","Ζ":"Z","Η":"I","Θ":"T","Ι":"I","Κ":"K","Λ":"L","Μ":"M",
+    "Ν":"N","Ξ":"X","Ο":"O","Π":"P","Ρ":"R","Σ":"S","Τ":"T","Υ":"Y","Φ":"F","Χ":"H","Ψ":"P","Ω":"O" };
   const soloLettere = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase().replace(/[^A-Z]/g, "");
+    .toUpperCase().replace(/[Α-Ω]/g, (c) => GRECO[c] || "").replace(/[^A-Z]/g, "");
   const soloCifre = (t) => String(t || "").replace(/\D/g, "");
 
   function vId() {
@@ -581,7 +584,7 @@
         <dl class="dati">
           <dt>${t("tuo_id_partecipante")}</dt><dd><b>${esc(mem.get("id_partecipante") || "—")}</b></dd>
           <dt>${t("codice_dispositivo")}</dt><dd>${esc(codicePartecipante())}</dd>
-          <dt>${t("consenso_dato")}</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString(L() === "en" ? "en-GB" : "it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
+          <dt>${t("consenso_dato")}</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString(({ it: "it-IT", en: "en-GB", el: "el-GR" })[L()] || "it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
           <dt>${t("versione_informativa")}</dt><dd>${esc(cons.versione || "—")}</dd>
           <dt>${t("lingua")}</dt><dd>${esc((LINGUE_DISPONIBILI.find((x) => x.codice === L()) || {}).nome || "")}</dd>
         </dl>
