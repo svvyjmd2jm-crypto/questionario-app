@@ -206,7 +206,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "14";
+  const VERSIONE_APP = "15";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
