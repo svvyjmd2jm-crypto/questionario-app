@@ -13,9 +13,11 @@ TESTI.it = {
   PRESENTAZIONE: (c) => `
     <p>Ti chiediamo di partecipare allo studio <b>${c.TITOLO_STUDIO}</b>, su emozioni,
     pensieri ed esperienze nella vita di tutti i giorni.</p>
-    <p>Più volte al giorno l'app ti invierà un promemoria per compilare un breve
-    questionario (circa 2 minuti). Rispondi pensando a come ti senti in quel momento
-    e a quello che è successo dall'ultima compilazione.</p>
+    <p>Quattro volte al giorno l'app ti invierà una notifica per compilare un breve
+    questionario (circa 2 minuti). La notifica arriva in un momento casuale e da quel
+    momento hai <b>60 minuti</b> per rispondere. Se non riesci, nessun problema: aspetta la notifica
+    successiva. Rispondi pensando a come ti senti in quel momento e a quello che è
+    successo dall'ultima compilazione.</p>
     <p><b>Partecipare è volontario.</b> Puoi smettere quando vuoi, senza dare spiegazioni
     e senza alcuna conseguenza. Dall'app puoi anche ritirare il consenso e far cancellare
     le tue risposte.</p>
@@ -135,9 +137,11 @@ TESTI.en = {
   PRESENTAZIONE: (c) => `
     <p>We are asking you to take part in the study <b>${c.TITOLO_STUDIO}</b>, about emotions,
     thoughts and experiences in everyday life.</p>
-    <p>Several times a day the app will send you a reminder to answer a short
-    questionnaire (about 2 minutes). Answer thinking about how you feel at that moment
-    and about what has happened since the last questionnaire.</p>
+    <p>Four times a day the app will send you a notification to answer a short
+    questionnaire (about 2 minutes). The notification arrives at a random moment and from
+    that moment you have <b>60 minutes</b> to answer. If you cannot, that is fine: just wait for the next
+    notification. Answer thinking about how you feel at that moment and about what has
+    happened since the last questionnaire.</p>
     <p><b>Taking part is voluntary.</b> You can stop whenever you want, without giving any
     reason and without any consequence. From the app you can also withdraw your consent and
     have your answers deleted.</p>
@@ -254,8 +258,10 @@ TESTI.el = {
   PRESENTAZIONE: (c) => `
     <p>Σου ζητάμε να συμμετάσχεις στη μελέτη <b>${c.TITOLO_STUDIO}</b>, σχετικά με τα συναισθήματα,
     τις σκέψεις και τις εμπειρίες της καθημερινής ζωής.</p>
-    <p>Αρκετές φορές την ημέρα η εφαρμογή θα σου στέλνει μια υπενθύμιση για να συμπληρώσεις ένα σύντομο
-    ερωτηματολόγιο (περίπου 2 λεπτά). Απάντησε σκεπτόμενος/η πώς νιώθεις εκείνη τη στιγμή
+    <p>Τέσσερις φορές την ημέρα η εφαρμογή θα σου στέλνει μια ειδοποίηση για να συμπληρώσεις ένα σύντομο
+    ερωτηματολόγιο (περίπου 2 λεπτά). Η ειδοποίηση έρχεται σε μια τυχαία στιγμή και από
+    εκείνη τη στιγμή έχεις <b>60 λεπτά</b> για να απαντήσεις. Αν δεν μπορείς, δεν πειράζει: περίμενε την επόμενη
+    ειδοποίηση. Απάντησε σκεπτόμενος/η πώς νιώθεις εκείνη τη στιγμή
     και τι έχει συμβεί από την τελευταία συμπλήρωση.</p>
     <p><b>Η συμμετοχή είναι εθελοντική.</b> Μπορείς να σταματήσεις όποτε θέλεις, χωρίς να δώσεις
     εξηγήσεις και χωρίς καμία συνέπεια. Από την εφαρμογή μπορείς επίσης να ανακαλέσεις τη συναίνεσή σου

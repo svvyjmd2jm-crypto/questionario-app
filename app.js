@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "18";
+  const VERSIONE_APP = "20";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -277,8 +277,10 @@
   const chiaveFascia = (f) => f.data + "|" + f.etichetta;
 
   // ---------- notifiche già partite ----------
-  // Servono solo per registrare nel foglio a che ora è partita la notifica della fascia,
-  // anche quando la persona apre l'app dall'icona. NON bloccano la compilazione.
+  // Il questionario si apre SOLO quando arriva la notifica della fascia e resta aperto
+  // per MINUTI_DOPO_NOTIFICA minuti (campionamento casuale: il momento lo sceglie il caso).
+  // L'app conosce la notifica dal tocco sulla notifica (parametro t) oppure dallo script
+  // Google, che comunica solo quelle già partite (mai quelle future).
   // Vengono da: notifica toccata (parametro t), oppure dallo script Google,
   // che comunica solo quelle già partite oggi (mai quelle future).
   function notificheNote() { return mem.get("notifiche_note", {}); }
@@ -295,11 +297,33 @@
   }
   const notificaDellaFascia = (f) => (f ? notificheNote()[chiaveFascia(f)] || null : null);
 
+  // Fascia che si può compilare adesso: quella la cui notifica è arrivata da meno di
+  // MINUTI_DOPO_NOTIFICA minuti. Senza notifica il questionario resta chiuso.
+  const MIN_DOPO_NOTIFICA = Number(CONFIG.MINUTI_DOPO_NOTIFICA || 60);
+  function fasciaAttiva() {
+    const ora = Date.now(), n = notificheNote();
+    let scelta = null, msScelta = 0;
+    Object.keys(n).forEach((k) => {
+      const ms = Number(n[k]);
+      if (ms <= ora + 60000 && ora < ms + MIN_DOPO_NOTIFICA * 60000 && ms > msScelta) {
+        const g = fasciaCorrente(ms);
+        if (g) { scelta = g; msScelta = ms; }
+      }
+    });
+    return scelta;
+  }
+  // Siamo entro MINUTI_DOPO_NOTIFICA dalla fine di una fascia? (serve per chiedere allo script le notifiche)
+  function pocoDopoUnaFascia() {
+    const m = adessoRoma().minuti;
+    return FASCE.some((x) => (m - x.fine + 1440) % 1440 < MIN_DOPO_NOTIFICA);
+  }
+
   let ultimoControllo = 0;
   async function controllaNotificheServer(forza) {
     if (!CONFIG.URL_APPS_SCRIPT || !FASCE.length) return;
-    const f = fasciaCorrente();
-    if (!f || (!forza && notificaDellaFascia(f))) return;
+    const f = fasciaAttiva();
+    if (!f && !fasciaCorrente() && !pocoDopoUnaFascia()) return;  // di notte non serve chiedere
+    if (f && !forza) return;                                      // notifica già nota
     if (!forza && Date.now() - ultimoControllo < 45000) return;
     ultimoControllo = Date.now();
     try {
@@ -326,10 +350,10 @@
     const l = mem.get("fasce_compilate", []).concat(chiaveFascia(f));
     mem.set("fasce_compilate", l.slice(-80));
   }
-  // Si può compilare adesso? Bloccato SOLO fuori fascia o se in questa fascia si è già compilato.
+  // Si può compilare adesso? Solo entro MINUTI_DOPO_NOTIFICA dalla notifica e una sola volta per fascia.
   function statoCompilazione() {
     if (!FASCE.length) return { ok: true, fascia: null };
-    const f = fasciaCorrente();
+    const f = fasciaAttiva();
     if (!f) return { ok: false, motivo: "fuori", prossima: prossimaFascia() };
     if (fasciaGiaCompilata(f)) return { ok: false, motivo: "fatta", fascia: f, prossima: prossimaFascia() };
     return { ok: true, fascia: f, notifica: notificaDellaFascia(f) };
