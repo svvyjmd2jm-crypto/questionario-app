@@ -177,7 +177,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "10";
+  const VERSIONE_APP = "11";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -272,6 +272,7 @@
     app.innerHTML = `
       <section class="scheda">
         <h1>Benvenuto/a</h1>
+        <p class="crediti">App ideata e sviluppata da <b>Alberto Misitano</b> e <b>Michela Rizzo</b></p>
         <div class="informativa">${TESTI.PRESENTAZIONE(CONFIG)}</div>
         <button class="link" id="leggi">Leggi l'informativa privacy completa</button>
       </section>
