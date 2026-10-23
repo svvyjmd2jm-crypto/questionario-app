@@ -228,3 +228,13 @@ main { flex: 1; width: 100%; }
 }
 .copyright span { display: block; }
 .crediti { margin: -4px 0 14px; font-size: .88rem; color: var(--tenue); }
+
+/* --- lingua --- */
+.btn-lingua {
+  margin-left: auto; appearance: none; font: inherit; font-size: .8rem; font-weight: 700; letter-spacing: .06em;
+  color: var(--primario); background: var(--primario-chiaro); border: 1px solid transparent;
+  border-radius: 999px; padding: 6px 12px; min-height: 32px; cursor: pointer;
+}
+.btn-lingua:focus-visible { outline: 2px solid var(--primario); outline-offset: 2px; }
+.scelta-lingua { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+.sottotitolo-lingua { font-size: 1rem; font-weight: 500; color: var(--tenue); }

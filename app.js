@@ -32,6 +32,27 @@
     return c;
   }
 
+  // ---------- lingua ----------
+  let lingua = mem.get("lingua") || null;
+  const L = () => (lingua && UI[lingua]) ? lingua : "it";
+  // testo dell'interfaccia nella lingua scelta (le voci-funzione ricevono parametri)
+  function t(chiave, ...args) {
+    const v = (UI[L()] && UI[L()][chiave] !== undefined) ? UI[L()][chiave] : UI.it[chiave];
+    return typeof v === "function" ? v(...args) : v;
+  }
+  // testo bilingue {it, en} (o testo semplice) nella lingua scelta
+  const tx = (x) => (x && typeof x === "object") ? (x[L()] ?? x.it ?? "") : (x ?? "");
+  // config.js con i valori eventualmente scritti come {it, en}
+  function cfg() {
+    const c = {};
+    Object.keys(CONFIG).forEach((k) => {
+      const v = CONFIG[k];
+      c[k] = (v && typeof v === "object" && !Array.isArray(v) && ("it" in v || "en" in v)) ? tx(v) : v;
+    });
+    return c;
+  }
+  const testi = () => TESTI[L()] || TESTI.it;
+
   // ---------- dispositivo ----------
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -57,6 +78,7 @@
           allowLocalhostAsSecureOrigin: true,
         });
         OS = OneSignal;
+        impostaLinguaNotifiche();
         OneSignal.Notifications.addEventListener("permissionChange", () => render());
         render();
       } catch (e) {
@@ -69,13 +91,18 @@
     s.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
     s.defer = true;
     s.onerror = () => {
-      osErrore = "impossibile scaricare il servizio di notifiche (connessione assente o contenuti bloccati dal browser)";
+      osErrore = "§err_scaricare";
       render();
     };
     document.head.appendChild(s);
     setTimeout(() => {
-      if (!OS && !osErrore) { osErrore = "il servizio di notifiche non ha risposto entro 20 secondi"; render(); }
+      if (!OS && !osErrore) { osErrore = "§err_timeout"; render(); }
     }, 20000);
+  }
+
+  // le notifiche arrivano nella lingua scelta nell'app
+  function impostaLinguaNotifiche() {
+    try { if (OS && OS.User && OS.User.setLanguage) OS.User.setLanguage(L()); } catch (e) {}
   }
 
   function notificheAttive() {
@@ -156,17 +183,19 @@
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   function formattaData(ms) {
-    return new Date(ms).toLocaleString("it-IT", {
+    return new Date(ms).toLocaleString(L() === "en" ? "en-GB" : "it-IT", {
       weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
     });
   }
 
   // ---------- stato ----------
   let schermata = mem.get("revocato") ? "revocato"
+    : !lingua ? "lingua"
     : !mem.get("consenso") ? "consenso"
     : !mem.get("id_partecipante") ? "id"
     : "home";
   let indietroDa = "consenso"; // dove torna l'informativa
+  let dopoLingua = null;       // dove tornare dopo aver cambiato lingua
   let passo = 0;
   let risposte = {};
   let inizio = null;          // quando è iniziata la compilazione
@@ -177,7 +206,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "11";
+  const VERSIONE_APP = "12";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -258,42 +287,75 @@
   const SCHERMATE = {
     consenso: vConsenso, informativa: vInformativa, home: vHome, questionario: vQuestionario,
     grazie: vGrazie, privacy: vPrivacy, conferma: vConferma, revocato: vRevocato, id: vId,
+    lingua: vLingua,
   };
   function vai(s) { schermata = s; render(); }
   function render() {
-    document.getElementById("nome-app").textContent = CONFIG.NOME_APP;
-    document.title = CONFIG.NOME_APP;
+    document.documentElement.lang = L();
+    document.getElementById("nome-app").textContent = t("nome_app");
+    document.title = t("nome_app");
+    const piede = document.querySelector(".copyright");
+    if (piede) piede.innerHTML = `<span>${t("copyright_1")}</span><span>${t("copyright_2")}</span>`;
+    // pulsante lingua in alto: nascosto durante il questionario e nella scelta lingua
+    const bl = document.getElementById("cambia-lingua");
+    if (bl) {
+      bl.hidden = !lingua || schermata === "questionario" || schermata === "lingua";
+      bl.textContent = L() === "it" ? "EN" : "IT";
+      bl.setAttribute("aria-label", t("cambia_lingua"));
+    }
     SCHERMATE[schermata]();
     window.scrollTo(0, 0);
   }
 
+  function scegliLingua(codice) {
+    lingua = codice;
+    mem.set("lingua", codice);
+    impostaLinguaNotifiche();
+  }
+
+  function vLingua() {
+    app.innerHTML = `
+      <section class="scheda centro">
+        <h1>Scegli la lingua<br><span class="sottotitolo-lingua">Choose your language</span></h1>
+        <div class="scelta-lingua">
+          ${LINGUE_DISPONIBILI.map((l) => `
+            <button class="btn ${lingua === l.codice ? "primario" : "secondario"} grande" data-lingua="${l.codice}">${l.nome}</button>`).join("")}
+        </div>
+      </section>`;
+    app.querySelectorAll("[data-lingua]").forEach((b) => b.addEventListener("click", () => {
+      scegliLingua(b.dataset.lingua);
+      const dest = dopoLingua || (mem.get("consenso") ? (mem.get("id_partecipante") ? "home" : "id") : "consenso");
+      dopoLingua = null;
+      vai(dest);
+    }));
+  }
+
   function vConsenso() {
-    const tutte = TESTI.CONSENSI.every((c) => spunte[c.id]);
+    const tutte = testi().CONSENSI.every((c) => spunte[c.id]);
     app.innerHTML = `
       <section class="scheda">
-        <h1>Benvenuto/a</h1>
-        <p class="crediti">App ideata e sviluppata da <b>Alberto Misitano</b> e <b>Michela Rizzo</b></p>
-        <div class="informativa">${TESTI.PRESENTAZIONE(CONFIG)}</div>
-        <button class="link" id="leggi">Leggi l'informativa privacy completa</button>
+        <h1>${t("benvenuto")}</h1>
+        <p class="crediti">${t("crediti")}</p>
+        <div class="informativa">${testi().PRESENTAZIONE(cfg())}</div>
+        <button class="link" id="leggi">${t("leggi_informativa")}</button>
       </section>
       <section class="scheda">
-        <h2>Consenso informato</h2>
+        <h2>${t("consenso_titolo")}</h2>
         <div class="consensi">
-          ${TESTI.CONSENSI.map((c) => `
+          ${testi().CONSENSI.map((c) => `
             <label class="spunta">
               <input type="checkbox" id="c-${esc(c.id)}" data-id="${esc(c.id)}" ${spunte[c.id] ? "checked" : ""}>
               <span>${esc(c.testo)}</span>
             </label>`).join("")}
         </div>
-        <button class="btn primario" id="avanti" ${tutte ? "" : "disabled"}>Acconsento e inizio</button>
-        <p class="piccolo">Per partecipare servono tutte e tre le conferme. Puoi revocare il consenso
-          in qualsiasi momento dalla sezione <i>Privacy e dati</i>.</p>
+        <button class="btn primario" id="avanti" ${tutte ? "" : "disabled"}>${t("acconsento")}</button>
+        <p class="piccolo">${t("consenso_nota")}</p>
       </section>`;
     app.querySelector("#leggi").addEventListener("click", () => { indietroDa = "consenso"; vai("informativa"); });
     const btn = app.querySelector("#avanti");
     app.querySelectorAll(".consensi input").forEach((i) => i.addEventListener("change", () => {
       spunte[i.dataset.id] = i.checked;
-      btn.disabled = !TESTI.CONSENSI.every((c) => spunte[c.id]);
+      btn.disabled = !testi().CONSENSI.every((c) => spunte[c.id]);
     }));
     btn.addEventListener("click", () => { consensoIl = Date.now(); vai("id"); });
   }
@@ -308,26 +370,25 @@
     const primoAccesso = !mem.get("consenso");
     app.innerHTML = `
       <section class="scheda">
-        <h1>Il tuo ID partecipante</h1>
-        <p>Crea il tuo ID così: ti servirà per collegare le tue risposte anche se cambi telefono.</p>
+        <h1>${t("id_titolo")}</h1>
+        <p>${t("id_spiegazione")}</p>
         <div class="campi-id">
-          <label for="id-nome"><span>Ultime 2 lettere del tuo <b>nome</b></span>
-            <input id="id-nome" maxlength="2" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="es. IO">
+          <label for="id-nome"><span>${t("id_nome")}</span>
+            <input id="id-nome" maxlength="2" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="${t("id_es_nome")}">
           </label>
-          <label for="id-cognome"><span>Ultime 2 lettere del tuo <b>cognome</b></span>
-            <input id="id-cognome" maxlength="2" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="es. HI">
+          <label for="id-cognome"><span>${t("id_cognome")}</span>
+            <input id="id-cognome" maxlength="2" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="${t("id_es_cognome")}">
           </label>
-          <label for="id-tel"><span>Ultime ${nCifre} cifre del tuo <b>cellulare</b></span>
+          <label for="id-tel"><span>${t("id_tel", nCifre)}</span>
             <input id="id-tel" maxlength="${nCifre}" inputmode="numeric" autocomplete="off" placeholder="${"0".repeat(nCifre)}">
           </label>
         </div>
-        <p class="anteprima-id">Il tuo ID: <output id="id-anteprima">—</output></p>
-        <p class="piccolo">Esempio: Mario Bianchi, cellulare che finisce con …740 → <b>IOHI740</b>.
-          Usa sempre lo stesso ID.</p>
+        <p class="anteprima-id">${t("il_tuo_id")}: <output id="id-anteprima">—</output></p>
+        <p class="piccolo">${t("id_esempio")}</p>
         <p class="errore" id="errore" hidden></p>
         <div class="navigazione">
-          ${primoAccesso ? `<button class="btn" id="indietro">Indietro</button>` : ""}
-          <button class="btn primario" id="salva" disabled>Conferma</button>
+          ${primoAccesso ? `<button class="btn" id="indietro">${t("indietro")}</button>` : ""}
+          <button class="btn primario" id="salva" disabled>${t("conferma")}</button>
         </div>
       </section>`;
     const nome = app.querySelector("#id-nome");
@@ -359,8 +420,9 @@
           codice: codicePartecipante(),
           id_partecipante: id,
           consenso_il: new Date(ora).toISOString(),
+          lingua_consenso: L(),
           versione_informativa: CONFIG.VERSIONE_INFORMATIVA,
-          consensi_espressi: TESTI.CONSENSI.map((c) => c.id).join("; "),
+          consensi_espressi: testi().CONSENSI.map((c) => c.id).join("; "),
         });
         inviaCoda();
       }
@@ -383,59 +445,57 @@
   function vInformativa() {
     app.innerHTML = `
       <section class="scheda testo-lungo">
-        <h1>Informativa sul trattamento dei dati personali</h1>
-        <p class="piccolo">Artt. 13 e 9 del Regolamento (UE) 2016/679 (GDPR)</p>
-        ${TESTI.INFORMATIVA(CONFIG)}
+        <h1>${t("informativa_titolo")}</h1>
+        <p class="piccolo">${t("informativa_sotto")}</p>
+        ${testi().INFORMATIVA(cfg())}
       </section>
-      <button class="btn primario larga" id="chiudi">Torna indietro</button>`;
+      <button class="btn primario larga" id="chiudi">${t("torna_indietro")}</button>`;
     app.querySelector("#chiudi").addEventListener("click", () => vai(indietroDa));
   }
 
   function bloccoNotifiche() {
     if (!CONFIG.ONESIGNAL_APP_ID) {
-      return `<div class="avviso">Notifiche non ancora configurate (manca l'App ID di OneSignal in <code>config.js</code>).</div>`;
+      return `<div class="avviso">${t("notifiche_non_config")}</div>`;
     }
     if (isIOS && !isInstallata) {
       return `
         <div class="avviso">
-          <b>Per ricevere i promemoria su iPhone</b>, aggiungi l'app alla schermata Home:
+          <b>${t("ios_titolo")}</b>, ${t("ios_testo")}
           <ol>
-            <li>Tocca il pulsante <b>Condividi</b> <span aria-hidden="true">⬆︎</span> in basso in Safari</li>
-            <li>Scegli <b>Aggiungi alla schermata Home</b></li>
-            <li>Apri l'app dall'icona appena creata</li>
+            <li>${t("ios_1")}</li>
+            <li>${t("ios_2")}</li>
+            <li>${t("ios_3")}</li>
           </ol>
         </div>`;
     }
     if (osErrore) {
       return `
         <div class="avviso">
-          <p><b>Le notifiche non si sono attivate.</b></p>
-          <p class="piccolo">Motivo: ${esc(osErrore)}</p>
-          <button class="btn secondario" id="riprova">Riprova</button>
+          <p><b>${t("notifiche_errore")}</b></p>
+          <p class="piccolo">${t("motivo")}: ${esc(osErrore.charAt(0) === "§" ? t(osErrore.slice(1)) : osErrore)}</p>
+          <button class="btn secondario" id="riprova">${t("riprova")}</button>
         </div>`;
     }
-    if (!OS) return `<div class="avviso tenue">Caricamento notifiche…</div>`;
+    if (!OS) return `<div class="avviso tenue">${t("caricamento_notifiche")}</div>`;
     if (notificheAttive()) {
-      return `<div class="ok-box">🔔 Promemoria attivi. Ti avviseremo quando è il momento di compilare.</div>`;
+      return `<div class="ok-box">${t("promemoria_attivi")}</div>`;
     }
     if (typeof Notification !== "undefined" && Notification.permission === "denied") {
-      return `<div class="avviso">Hai bloccato le notifiche. Puoi riattivarle dalle impostazioni del telefono per questa app.</div>`;
+      return `<div class="avviso">${t("notifiche_bloccate")}</div>`;
     }
     return `
       <div class="avviso">
-        <p>Attiva i promemoria per sapere quando compilare. Sono facoltativi e puoi
-        disattivarli quando vuoi.</p>
-        <button class="btn secondario" id="notifiche">Attiva promemoria</button>
+        <p>${t("attiva_testo")}</p>
+        <button class="btn secondario" id="notifiche">${t("attiva_promemoria")}</button>
       </div>`;
   }
 
   function bloccoCompilazione(st) {
-    if (st.ok) return `<button class="btn primario grande" id="inizia">Compila il questionario</button>`;
+    if (st.ok) return `<button class="btn primario grande" id="inizia">${t("compila")}</button>`;
     if (st.motivo === "fatta") {
-      return `<div class="ok-box"><b>Grazie!</b> Hai già compilato il questionario.
-        Aspetta la prossima notifica.</div>`;
+      return `<div class="ok-box"><b>${t("grazie")}</b> ${t("gia_compilato")}</div>`;
     }
-    return `<div class="ok-box"><b>Grazie!</b> Aspetta la prossima notifica per compilare il questionario.</div>`;
+    return `<div class="ok-box"><b>${t("grazie")}</b> ${t("aspetta_notifica")}</div>`;
   }
 
   function vHome() {
@@ -445,17 +505,17 @@
     const st = statoCompilazione();
     app.innerHTML = `
       <section class="scheda">
-        <h1>Ciao!</h1>
+        <h1>${t("ciao")}</h1>
         <p>${ultima
-          ? `Ultima compilazione: <b>${esc(formattaData(ultima))}</b><br>Compilazioni totali: <b>${n}</b>`
-          : "Non hai ancora compilato il questionario."}</p>
+          ? `${t("ultima_compilazione")}: <b>${esc(formattaData(ultima))}</b><br>${t("compilazioni_totali")}: <b>${n}</b>`
+          : t("mai_compilato")}</p>
         ${bloccoCompilazione(st)}
-        ${inCoda ? `<p class="piccolo">${inCoda} compilazione/i in attesa di invio (verranno inviate appena c'è connessione).</p>` : ""}
+        ${inCoda ? `<p class="piccolo">${t("in_attesa", inCoda)}</p>` : ""}
       </section>
       ${bloccoNotifiche()}
       <div class="piede">
-        <span>Il tuo ID: <b>${esc(mem.get("id_partecipante") || "")}</b></span>
-        <button class="link" id="privacy">Privacy e dati</button>
+        <span>${t("il_tuo_id")}: <b>${esc(mem.get("id_partecipante") || "")}</b></span>
+        <button class="link" id="privacy">${t("privacy_dati")}</button>
       </div>`;
     const bi = app.querySelector("#inizia");
     if (bi) bi.addEventListener("click", () => avviaQuestionario(false));
@@ -470,34 +530,32 @@
     const cons = mem.get("consenso") || {};
     app.innerHTML = `
       <section class="scheda">
-        <h1>Privacy e dati</h1>
+        <h1>${t("privacy_dati")}</h1>
         <dl class="dati">
-          <dt>Il tuo ID partecipante</dt><dd><b>${esc(mem.get("id_partecipante") || "—")}</b></dd>
-          <dt>Codice dispositivo</dt><dd>${esc(codicePartecipante())}</dd>
-          <dt>Consenso dato il</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
-          <dt>Versione informativa</dt><dd>${esc(cons.versione || "—")}</dd>
+          <dt>${t("tuo_id_partecipante")}</dt><dd><b>${esc(mem.get("id_partecipante") || "—")}</b></dd>
+          <dt>${t("codice_dispositivo")}</dt><dd>${esc(codicePartecipante())}</dd>
+          <dt>${t("consenso_dato")}</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString(L() === "en" ? "en-GB" : "it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
+          <dt>${t("versione_informativa")}</dt><dd>${esc(cons.versione || "—")}</dd>
+          <dt>${t("lingua")}</dt><dd>${esc((LINGUE_DISPONIBILI.find((x) => x.codice === L()) || {}).nome || "")}</dd>
         </dl>
-        <p class="piccolo">Per esercitare i tuoi diritti (accesso, rettifica, portabilità)
-        scrivi a ${esc(CONFIG.EMAIL_STUDIO)} indicando il tuo ID partecipante.</p>
-        <button class="link" id="leggi">Leggi l'informativa privacy completa</button>
+        <p class="piccolo">${t("diritti", esc(cfg().EMAIL_STUDIO))}</p>
+        <button class="link" id="leggi">${t("leggi_informativa")}</button>
       </section>
 
       ${notificheAttive() ? `
       <section class="scheda">
-        <h2>Promemoria</h2>
-        <p>Puoi smettere di ricevere promemoria e continuare comunque a partecipare.</p>
-        <button class="btn" id="stop-notifiche">Disattiva promemoria</button>
+        <h2>${t("promemoria")}</h2>
+        <p>${t("stop_testo")}</p>
+        <button class="btn" id="stop-notifiche">${t("disattiva_promemoria")}</button>
       </section>` : ""}
 
       <section class="scheda pericolo">
-        <h2>Ritira il consenso</h2>
-        <p>Smetterai di partecipare e <b>tutte le tue risposte verranno cancellate</b>
-        dall'archivio dello studio. Verranno cancellati anche i dati per i promemoria e quelli
-        salvati su questo telefono.</p>
-        <button class="btn rosso" id="revoca">Ritira il consenso e cancella i miei dati</button>
+        <h2>${t("ritira_titolo")}</h2>
+        <p>${t("ritira_testo")}</p>
+        <button class="btn rosso" id="revoca">${t("ritira_btn")}</button>
       </section>
 
-      <button class="btn larga" id="home">Torna alla home</button>`;
+      <button class="btn larga" id="home">${t("torna_home")}</button>`;
     app.querySelector("#leggi").addEventListener("click", () => { indietroDa = "privacy"; vai("informativa"); });
     const sn = app.querySelector("#stop-notifiche");
     if (sn) sn.addEventListener("click", disattivaNotifiche);
@@ -508,12 +566,11 @@
   function vConferma() {
     app.innerHTML = `
       <section class="scheda pericolo">
-        <h1>Sei sicuro/a?</h1>
-        <p>Le tue risposte (ID <b>${esc(mem.get("id_partecipante") || codicePartecipante())}</b>) verranno cancellate
-        definitivamente e non potranno essere recuperate.</p>
+        <h1>${t("sei_sicuro")}</h1>
+        <p>${t("sicuro_testo", esc(mem.get("id_partecipante") || codicePartecipante()))}</p>
         <div class="navigazione">
-          <button class="btn" id="annulla">Annulla</button>
-          <button class="btn rosso" id="conferma">Sì, cancella</button>
+          <button class="btn" id="annulla">${t("annulla")}</button>
+          <button class="btn rosso" id="conferma">${t("si_cancella")}</button>
         </div>
       </section>`;
     app.querySelector("#annulla").addEventListener("click", () => vai("privacy"));
@@ -523,7 +580,7 @@
   async function revoca() {
     const btn = app.querySelector("#conferma");
     btn.disabled = true;
-    btn.textContent = "Cancellazione…";
+    btn.textContent = t("cancellazione");
     const codice = codicePartecipante();
     let osId = "";
     try { osId = (OS && OS.User && OS.User.onesignalId) || ""; } catch (e) {}
@@ -540,6 +597,7 @@
     if (OS) { try { await OS.User.PushSubscription.optOut(); } catch (e) {} }
     // Cancella tutto dal telefono; se l'invio non è riuscito conserva solo la richiesta
     mem.svuota();
+    mem.set("lingua", L());
     mem.set("revocato", { il: Date.now(), codice: richiesta.id_partecipante || codice, confermata: ok });
     if (!ok) mem.set("cancellazione_in_sospeso", richiesta);
     vai("revocato");
@@ -562,25 +620,21 @@
     app.innerHTML = `
       <section class="scheda centro">
         <div class="grande-icona" aria-hidden="true">✓</div>
-        <h1>Consenso ritirato</h1>
+        <h1>${t("revocato_titolo")}</h1>
         ${rev.confermata
-          ? `<p>Le tue risposte sono state cancellate dall'archivio dello studio e dal telefono.
-             Non riceverai altri promemoria.</p>`
-          : `<p>Hai ritirato il consenso e i dati sono stati cancellati da questo telefono.
-             Non siamo riusciti a contattare l'archivio dello studio: riproveremo appena c'è
-             connessione, finché tieni l'app installata.</p>
-             <p>Per sicurezza puoi anche scrivere a <b>${esc(CONFIG.EMAIL_STUDIO)}</b> indicando l'ID
-             <b>${esc(rev.codice || "")}</b>.</p>`}
-        <p>Grazie per il tempo che ci hai dedicato. Ora puoi disinstallare l'app.</p>
-        <button class="link" id="ricomincia">Voglio partecipare di nuovo</button>
+          ? `<p>${t("revocato_ok")}</p>`
+          : `<p>${t("revocato_ko")}</p>
+             <p>${t("revocato_email", esc(cfg().EMAIL_STUDIO), esc(rev.codice || ""))}</p>`}
+        <p>${t("revocato_fine")}</p>
+        <button class="link" id="ricomincia">${t("partecipa_ancora")}</button>
       </section>`;
     app.querySelector("#ricomincia").addEventListener("click", () => {
       if (mem.get("cancellazione_in_sospeso")) {
         app.querySelector("#ricomincia").insertAdjacentHTML("afterend",
-          `<p class="errore">Attendi che la cancellazione sia completata (serve connessione) prima di ripartecipare.</p>`);
+          `<p class="errore">${t("attendi_cancellazione")}</p>`);
         return;
       }
-      mem.svuota(); spunte = {}; consensoIl = null; vai("consenso");
+      mem.svuota(); mem.set("lingua", L()); spunte = {}; consensoIl = null; vai("consenso");
     });
   }
 
@@ -609,24 +663,24 @@
         void et;
         return `
           <div class="cursore ${toccato ? "" : "vuoto"}">
-            <p id="valore" class="istruzione">${toccato ? "" : "Tocca la barra"}</p>
+            <p id="valore" class="istruzione">${toccato ? "" : t("tocca_barra")}</p>
             <div class="riga-vas">
               <span class="ancora" aria-hidden="true">${min}</span>
               <input type="range" id="campo-range" min="${min}" max="${max}" step="1"
                 value="${toccato ? v : partenzaSlider(d)}"
-                aria-label="${esc(d.testo)}" aria-valuetext="${toccato ? "posizione scelta" : "nessuna risposta"}">
+                aria-label="${esc(tx(d.testo))}" aria-valuetext="${toccato ? t("posizione_scelta") : t("nessuna_risposta")}">
               <span class="ancora" aria-hidden="true">${max}</span>
             </div>
           </div>`;
       }
       case "scelta":
         return `<div class="opzioni">${d.opzioni.map((o) =>
-          `<button type="button" class="opzione ${v === o ? "scelto" : ""}" data-v="${esc(o)}">${esc(o)}</button>`
+          `<button type="button" class="opzione ${v === codiceOpzione(o) ? "scelto" : ""}" data-v="${esc(codiceOpzione(o))}">${esc(etichettaOpzione(o))}</button>`
         ).join("")}</div>`;
       case "scelta_multipla": {
         const sel = Array.isArray(v) ? v : [];
         return `<div class="opzioni">${d.opzioni.map((o) =>
-          `<button type="button" class="opzione multi ${sel.includes(o) ? "scelto" : ""}" data-v="${esc(o)}">${esc(o)}</button>`
+          `<button type="button" class="opzione multi ${sel.includes(codiceOpzione(o)) ? "scelto" : ""}" data-v="${esc(codiceOpzione(o))}">${esc(etichettaOpzione(o))}</button>`
         ).join("")}</div>`;
       }
       case "numero":
@@ -634,10 +688,18 @@
           ${d.min != null ? `min="${d.min}"` : ""} ${d.max != null ? `max="${d.max}"` : ""}
           value="${v != null ? esc(v) : ""}">${d.unita ? `<span>${esc(d.unita)}</span>` : ""}</div>`;
       case "testo":
-        return `<textarea id="campo" rows="4" placeholder="Scrivi qui…">${v != null ? esc(v) : ""}</textarea>`;
+        return `<textarea id="campo" rows="4" placeholder="${t("scrivi_qui")}">${v != null ? esc(v) : ""}</textarea>`;
     }
     return "";
   }
+
+  // opzioni: {codice, it, en} oppure testo semplice
+  const codiceOpzione = (o) => (o && typeof o === "object") ? o.codice : o;
+  const etichettaOpzione = (o) => (o && typeof o === "object") ? tx(o) : o;
+  const etichettaItaliana = (d, codice) => {
+    const o = (d.opzioni || []).find((x) => codiceOpzione(x) === codice);
+    return o ? ((typeof o === "object") ? (o.it ?? "") : o) : "";
+  };
 
   // posizione (invisibile) da cui parte il cursore
   const partenzaSlider = (d) => Math.round(((d.min ?? 0) + (d.max ?? 100)) / 2);
@@ -696,30 +758,33 @@
     const ultimo = passo === DOMANDE.length - 1;
     const perc = Math.round((passo / DOMANDE.length) * 100);
     app.innerHTML = `
-      <div class="progresso" aria-label="Domanda ${passo + 1} di ${DOMANDE.length}">
+      <div class="progresso" aria-label="${t("domanda_n", passo + 1, DOMANDE.length)}">
         <div style="width:${perc}%"></div>
       </div>
-      <p class="piccolo">Domanda ${passo + 1} di ${DOMANDE.length}</p>
+      <p class="piccolo">${t("domanda_n", passo + 1, DOMANDE.length)}</p>
       <section class="scheda">
-        ${d.premessa ? `<p class="premessa">${esc(d.premessa)}</p>` : ""}
-        <h2>${esc(d.testo)}</h2>
+        ${d.premessa ? `<p class="premessa">${esc(tx(d.premessa))}</p>` : ""}
+        <h2>${esc(tx(d.testo))}</h2>
         ${campoDomanda(d)}
         <p class="errore" id="errore" hidden></p>
       </section>
       <div class="navigazione">
-        <button class="btn" id="indietro">${passo === 0 ? "Annulla" : "Indietro"}</button>
-        <button class="btn primario" id="avanti">${ultimo ? "Invia" : "Avanti"}</button>
+        <button class="btn" id="indietro">${passo === 0 ? t("annulla") : t("indietro")}</button>
+        <button class="btn primario" id="avanti">${ultimo ? t("invia") : t("avanti")}</button>
       </div>`;
 
     app.querySelectorAll(".tasto").forEach((b) => b.addEventListener("click", () => {
       risposte[d.id] = Number(b.dataset.v); annotaTocco(d, risposte[d.id], true); render();
     }));
     app.querySelectorAll(".opzione:not(.multi)").forEach((b) => b.addEventListener("click", () => {
-      risposte[d.id] = b.dataset.v; annotaTocco(d, risposte[d.id], true); render();
+      const o = d.opzioni.find((x) => String(codiceOpzione(x)) === b.dataset.v);
+      risposte[d.id] = o !== undefined ? codiceOpzione(o) : b.dataset.v;
+      annotaTocco(d, risposte[d.id], true); render();
     }));
     app.querySelectorAll(".opzione.multi").forEach((b) => b.addEventListener("click", () => {
       const sel = Array.isArray(risposte[d.id]) ? risposte[d.id] : [];
-      const v = b.dataset.v;
+      const o = d.opzioni.find((x) => String(codiceOpzione(x)) === b.dataset.v);
+      const v = o !== undefined ? codiceOpzione(o) : b.dataset.v;
       risposte[d.id] = sel.includes(v) ? sel.filter((x) => x !== v) : sel.concat(v);
       annotaTocco(d, risposte[d.id].join("; "), true);
       b.classList.toggle("scelto");
@@ -733,7 +798,7 @@
         annotaTocco(d, n, ev && ev.type === "change");
         range.closest(".cursore").classList.remove("vuoto");
         app.querySelector("#valore").textContent = "";
-        range.setAttribute("aria-valuetext", "posizione scelta");
+        range.setAttribute("aria-valuetext", t("posizione_scelta"));
         app.querySelector("#errore").hidden = true;
       };
       ["input", "change", "click"].forEach((ev) => range.addEventListener(ev, segna));
@@ -766,8 +831,8 @@
       if (!rispostaValida(d)) {
         const e = app.querySelector("#errore");
         e.textContent = d.tipo === "numero" && risposte[d.id] !== undefined && risposte[d.id] !== ""
-          ? `Inserisci un numero${d.min != null ? " da " + d.min : ""}${d.max != null ? " a " + d.max : ""}.`
-          : (d.tipo === "percentuale" ? "Sposta il cursore per rispondere." : "Rispondi per continuare.");
+          ? t("err_numero", d.min, d.max)
+          : (d.tipo === "percentuale" ? t("err_cursore") : t("err_rispondi"));
         e.hidden = false;
         return;
       }
@@ -798,11 +863,15 @@
       numero_fascia: fasciaQuestionario ? fasciaQuestionario.numero : "",
       sistema: sistema(),
       fuso_orario_telefono: (Intl.DateTimeFormat().resolvedOptions().timeZone || ""),
+      lingua: L(),
       versione_app: VERSIONE_APP,
     };
     DOMANDE.forEach((d) => {
       const v = risposte[d.id];
       record[d.id] = Array.isArray(v) ? v.join("; ") : (v ?? "");
+      // per le domande a scelta: anche l'etichetta (in italiano, uguale per tutte le lingue)
+      if (d.tipo === "scelta") record[d.id + "_etichetta"] = etichettaItaliana(d, v);
+      if (d.tipo === "scelta_multipla") record[d.id + "_etichetta"] = (Array.isArray(v) ? v : []).map((c) => etichettaItaliana(d, c)).join("; ");
     });
     // tempo di risposta di ogni singola domanda (secondi)
     DOMANDE.forEach((d) => { record["tempo_" + d.id] = sec(tempi[d.id] || 0); });
@@ -846,15 +915,23 @@
     app.innerHTML = `
       <section class="scheda centro">
         <div class="grande-icona" aria-hidden="true">✓</div>
-        <h1>Grazie!</h1>
-        <p>Le tue risposte sono state registrate.</p>
-        <button class="btn primario" id="home">Torna alla home</button>
+        <h1>${t("grazie")}</h1>
+        <p>${t("risposte_registrate")}</p>
+        <button class="btn primario" id="home">${t("torna_home")}</button>
       </section>`;
     app.querySelector("#home").addEventListener("click", () => {
       try { history.replaceState(null, "", BASE_PATH); } catch (e) {}
       vai("home");
     });
   }
+
+  // ---------- pulsante lingua in alto ----------
+  const btnLingua = document.getElementById("cambia-lingua");
+  if (btnLingua) btnLingua.addEventListener("click", () => {
+    if (schermata === "questionario") return;
+    dopoLingua = schermata === "lingua" ? null : schermata;
+    vai("lingua");
+  });
 
   // ---------- avvio ----------
   if (mem.get("consenso") && !mem.get("revocato")) caricaOneSignal();

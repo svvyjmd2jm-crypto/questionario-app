@@ -5,8 +5,11 @@
 // =====================================================================
 
 const CONFIG = {
-  // Nome mostrato in alto nell'app
+  // Nome mostrato in alto nell'app (le traduzioni dell'interfaccia sono in lingue.js)
   NOME_APP: "Diario dello studio",
+
+  // I testi per l'informativa qui sotto possono essere scritti in due lingue così:
+  //   TITOLO_STUDIO: { it: "Titolo in italiano", en: "Title in English" },
 
   // 1) URL della Web App di Google Apps Script (vedi GUIDA, passo 2)
   URL_APPS_SCRIPT: "https://script.google.com/macros/s/AKfycbyeF710Ab22EpQ5Vy1PvY05ozUzVZdBsM-OV3nKeG7KmkqR_hZcNYviLOlTodW8e1e6jA/exec",

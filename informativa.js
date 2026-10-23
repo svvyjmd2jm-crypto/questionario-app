@@ -1,10 +1,14 @@
 // =====================================================================
 //  TESTI DEL CONSENSO E DELL'INFORMATIVA PRIVACY (artt. 13 e 9 GDPR)
+//  in italiano (TESTI.it) e in inglese (TESTI.en).
 //  Modello da verificare con il DPO dell'ente e con il Comitato Etico.
 //  I dati tra parentesi graffe ${...} vengono presi da config.js.
+//  Gli "id" dei consensi devono restare uguali nelle due lingue.
 // =====================================================================
 
-const TESTI = {
+const TESTI = {};
+
+TESTI.it = {
   // Presentazione breve dello studio (prima schermata)
   PRESENTAZIONE: (c) => `
     <p>Ti chiediamo di partecipare allo studio <b>${c.TITOLO_STUDIO}</b>, su emozioni,
@@ -16,7 +20,8 @@ const TESTI = {
     e senza alcuna conseguenza. Dall'app puoi anche ritirare il consenso e far cancellare
     le tue risposte.</p>
     <p><b>Non ti chiediamo nome, email o numero di telefono.</b> Le risposte sono
-    collegate solo a un codice casuale creato su questo telefono (dati pseudonimizzati).</p>
+    collegate solo a un ID che crei tu e a un codice casuale creato su questo telefono
+    (dati pseudonimizzati).</p>
   `,
 
   // Caselle del consenso: tutte obbligatorie per partecipare
@@ -54,16 +59,17 @@ const TESTI = {
       eventi della giornata, stati emotivi, pensieri, sintomi. Alcune sono
       <b>dati relativi alla salute</b> (art. 9 GDPR).</li>
       <li><b>Dati tecnici della compilazione</b>: data e ora di inizio e invio, durata,
-      se hai aperto il questionario da un promemoria, tipo di sistema (iOS/Android).</li>
+      tempo passato su ogni domanda e movimenti dello slider, se hai aperto il questionario
+      da un promemoria, tipo di sistema (iOS/Android), lingua usata.</li>
       <li><b>ID partecipante</b> che crei tu (ultime due lettere del nome, ultime due del
       cognome e ultime cifre del cellulare, es. TONO740). Serve a collegare le tue
       compilazioni anche se cambi telefono o reinstalli l'app. Non contiene il tuo nome
       né il tuo numero di telefono completi.</li>
       <li><b>Codice dispositivo</b>: un codice casuale (es. K7P3-QXMA) generato sul tuo
       telefono, usato per l'invio delle risposte e per la cancellazione dei dati.</li>
-      <li><b>Registro del consenso</b>: data, ora e versione dell'informativa accettata.</li>
+      <li><b>Registro del consenso</b>: data, ora, lingua e versione dell'informativa accettata.</li>
       <li><b>Per i promemoria</b>, solo se li attivi: un identificativo tecnico del
-      dispositivo per le notifiche e l'orario dell'ultima compilazione. Il servizio di notifiche
+      dispositivo per le notifiche e la lingua dell'app. Il servizio di notifiche
       non riceve mai le tue risposte.</li>
     </ul>
     <p>Non raccogliamo nome, email, numero di telefono né posizione GPS.
@@ -114,12 +120,131 @@ const TESTI = {
 
     <h3>9. Sicurezza e dati sul telefono</h3>
     <p>I dati viaggiano su connessione cifrata (HTTPS). L'app non usa cookie. Sul telefono
-    conserva solo l'ID e il codice dispositivo, la data del consenso e le risposte in attesa di
+    conserva solo l'ID e il codice dispositivo, la lingua, la data del consenso e le risposte in attesa di
     invio. Se ritiri il consenso, l'app cancella anche questi dati dal telefono.</p>
 
     <h3>10. Processi decisionali automatizzati</h3>
     <p>Non viene effettuata alcuna profilazione né decisione automatizzata nei tuoi confronti.</p>
 
     <p class="piccolo">Versione dell'informativa: ${c.VERSIONE_INFORMATIVA}</p>
+  `,
+};
+
+TESTI.en = {
+  // Short presentation of the study (first screen)
+  PRESENTAZIONE: (c) => `
+    <p>We are asking you to take part in the study <b>${c.TITOLO_STUDIO}</b>, about emotions,
+    thoughts and experiences in everyday life.</p>
+    <p>Several times a day the app will send you a reminder to answer a short
+    questionnaire (about 2 minutes). Answer thinking about how you feel at that moment
+    and about what has happened since the last questionnaire.</p>
+    <p><b>Taking part is voluntary.</b> You can stop whenever you want, without giving any
+    reason and without any consequence. From the app you can also withdraw your consent and
+    have your answers deleted.</p>
+    <p><b>We do not ask for your name, email or phone number.</b> Your answers are linked
+    only to an ID you create and to a random code generated on this phone (pseudonymised data).</p>
+  `,
+
+  // Consent boxes: all required to take part (same ids as the Italian version)
+  CONSENSI: [
+    {
+      id: "informativa",
+      testo: "I have read the privacy notice and I am at least 18 years old.",
+    },
+    {
+      id: "partecipazione",
+      testo: "I freely agree to take part in the study.",
+    },
+    {
+      id: "dati_salute",
+      testo: "I explicitly consent to the processing of my health-related data " +
+        "(emotional states, stress, symptoms) for the research purposes described (Art. 9(2)(a) GDPR).",
+    },
+  ],
+
+  // Full privacy notice under Art. 13 GDPR
+  INFORMATIVA: (c) => `
+    <h3>1. Data controller</h3>
+    <p>${c.TITOLARE}, ${c.TITOLARE_INDIRIZZO}.<br>
+    Principal investigator: ${c.RESPONSABILE_SCIENTIFICO}, ${c.EMAIL_STUDIO}.<br>
+    Data Protection Officer (DPO): ${c.DPO_CONTATTO}.</p>
+
+    <h3>2. Purpose</h3>
+    <p>Your data are processed exclusively for the scientific study
+    "${c.TITOLO_STUDIO}", approved by ${c.COMITATO_ETICO}. Results will be published
+    only in aggregate form, without any reference to individual participants.</p>
+
+    <h3>3. What data we collect</h3>
+    <ul>
+      <li><b>Questionnaire answers</b>: the place you are in (a general category, not your GPS
+      position), events of the day, emotional states, thoughts, symptoms. Some of these are
+      <b>health-related data</b> (Art. 9 GDPR).</li>
+      <li><b>Technical data about each questionnaire</b>: start and submission date and time,
+      duration, time spent on each question and slider movements, whether you opened the
+      questionnaire from a reminder, operating system (iOS/Android), language used.</li>
+      <li><b>Participant ID</b> that you create (last two letters of your first name, last two of
+      your surname and last digits of your mobile number, e.g. TONO740). It links your
+      questionnaires even if you change phone or reinstall the app. It does not contain your
+      full name or full phone number.</li>
+      <li><b>Device code</b>: a random code (e.g. K7P3-QXMA) generated on your phone, used to
+      send your answers and to delete your data.</li>
+      <li><b>Consent record</b>: date, time, language and version of the notice you accepted.</li>
+      <li><b>For reminders</b>, only if you turn them on: a technical device identifier for
+      notifications and the language of the app. The notification service never receives
+      your answers.</li>
+    </ul>
+    <p>We do not collect your name, email, phone number or GPS position.
+    The data are <b>pseudonymised</b>: the research team does not use the ID to identify you
+    and does not match it with any list of names or phone numbers.</p>
+
+    <h3>4. Legal basis</h3>
+    <p>Your consent (Art. 6(1)(a) GDPR) and, for health-related data, your explicit consent
+    (Art. 9(2)(a) GDPR), in compliance with Art. 110 of Italian Legislative Decree 196/2003
+    and the Italian ethical rules for processing for scientific research purposes.</p>
+
+    <h3>5. Voluntary nature</h3>
+    <p>Taking part is optional. If you do not consent you cannot use the app, without any
+    consequence. Reminders are optional and can be turned off at any time.</p>
+
+    <h3>6. Who processes the data and where</h3>
+    <p>The data are accessible only to the authorised research team. To run the app we use
+    the following providers, appointed as data processors (Art. 28 GDPR):</p>
+    <ul>
+      <li><b>Google</b> (Google Workspace): storage of answers in a restricted-access spreadsheet;</li>
+      <li><b>OneSignal Inc.</b> (USA): sending reminders;</li>
+      <li><b>GitHub Inc.</b> (USA): hosting the app files. Like any website, it may record the IP
+      address in technical logs.</li>
+    </ul>
+    <p>Some of these providers may process data in the United States. Transfers are based on
+    the EU-US Data Privacy Framework (European Commission adequacy decision of 10 July 2023)
+    or on Standard Contractual Clauses (Art. 46 GDPR).</p>
+
+    <h3>7. Retention</h3>
+    <p>${c.CONSERVAZIONE}. Reminder data are deleted at the end of data collection. Answers
+    not yet sent remain on your phone only until they are sent.</p>
+
+    <h3>8. Your rights</h3>
+    <p>You can request access to your data, rectification, erasure, restriction of processing
+    and data portability, and you can object to processing (Arts. 15-22 GDPR). You can
+    <b>withdraw your consent</b> at any time, without affecting the lawfulness of processing
+    carried out before the withdrawal.</p>
+    <p><b>How:</b> in the <i>Privacy and data</i> section of the app you can withdraw your consent
+    and immediately delete all your answers. For the other rights, write to ${c.EMAIL_STUDIO}
+    stating your participant ID, which you can find in the app. We can delete or provide the
+    data linked to your ID ${c.TERMINE_REVOCA}. After that date the data may already have been
+    anonymised or included in aggregate analyses (Art. 17(3)(d) GDPR).</p>
+    <p>You also have the right to lodge a complaint with the Italian Data Protection Authority
+    (Garante per la protezione dei dati personali, www.garanteprivacy.it).</p>
+
+    <h3>9. Security and data on your phone</h3>
+    <p>Data are sent over an encrypted connection (HTTPS). The app does not use cookies. On your
+    phone it stores only your ID and device code, your language, the consent date and any
+    answers waiting to be sent. If you withdraw your consent, the app also deletes these data
+    from your phone.</p>
+
+    <h3>10. Automated decision-making</h3>
+    <p>No profiling or automated decision-making is carried out about you.</p>
+
+    <p class="piccolo">Notice version: ${c.VERSIONE_INFORMATIVA}</p>
   `,
 };
