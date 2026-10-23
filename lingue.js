@@ -11,7 +11,7 @@ const LINGUE_DISPONIBILI = [
 
 const UI = {
   it: {
-    nome_app: "Hexa",
+    nome_app: "Emotio",
     copyright_1: "Alberto Misitano e Michela Rizzo © 2026.",
     copyright_2: "Tutti i diritti riservati",
     scegli_lingua: "Scegli la lingua",
@@ -108,7 +108,7 @@ const UI = {
   },
 
   en: {
-    nome_app: "Hexa",
+    nome_app: "Emotio",
     copyright_1: "Alberto Misitano and Michela Rizzo © 2026.",
     copyright_2: "All rights reserved",
     scegli_lingua: "Choose your language",
@@ -205,7 +205,7 @@ const UI = {
   },
 
   el: {
-    nome_app: "Hexa",
+    nome_app: "Emotio",
     copyright_1: "Alberto Misitano και Michela Rizzo © 2026.",
     copyright_2: "Με την επιφύλαξη παντός δικαιώματος",
     scegli_lingua: "Επίλεξε γλώσσα",

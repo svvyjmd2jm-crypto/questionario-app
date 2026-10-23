@@ -1,12 +1,12 @@
 :root {
-  --sfondo: #f2f5f7;
+  --sfondo: #f6f4fb;
   --carta: #ffffff;
-  --testo: #14283a;
-  --tenue: #5c6d7a;
-  --bordo: #d8e1e8;
-  --primario: #1d4e6b;
+  --testo: #1e1730;
+  --tenue: #6f6787;
+  --bordo: #e4def0;
+  --primario: #3d2a85;
   --primario-testo: #ffffff;
-  --primario-chiaro: #e3edf4;
+  --primario-chiaro: #ece7f8;
   --avviso: #fff6e0;
   --avviso-bordo: #ecd59a;
   --ok: #e6f4ea;
@@ -16,14 +16,14 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --sfondo: #10171d;
-    --carta: #1a242c;
-    --testo: #e6edf2;
-    --tenue: #97a7b4;
-    --bordo: #2f3e4a;
-    --primario: #7fb6d9;
-    --primario-testo: #0b1a24;
-    --primario-chiaro: #1f3a4d;
+    --sfondo: #120e1f;
+    --carta: #1c172d;
+    --testo: #ece8f5;
+    --tenue: #a59cbd;
+    --bordo: #342b4d;
+    --primario: #b59cff;
+    --primario-testo: #160f2b;
+    --primario-chiaro: #2c2350;
     --avviso: #3a3220;
     --avviso-bordo: #6b5a2c;
     --ok: #1f3a28;
@@ -91,7 +91,7 @@ h2 { font-size: 1.2rem; margin: 0 0 18px; line-height: 1.35; }
 .ok-box { background: var(--ok); border: 1px solid var(--ok-bordo); }
 
 .progresso { height: 6px; background: var(--bordo); border-radius: 3px; overflow: hidden; }
-.progresso div { height: 100%; background: var(--primario); transition: width .25s; }
+.progresso div { height: 100%; background: linear-gradient(90deg,#ffbf3f,#ff4f5e,#9a6bff,#3f8cff); background-size: min(100vw, 560px) 100%; transition: width .25s; }
 
 .scala { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 6px; }
 .tasto {
