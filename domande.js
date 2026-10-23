@@ -25,7 +25,7 @@ const DOMANDE = [
       { codice: 2, it: "A casa di altri (amici, parenti, partner)",                      en: "At someone else's home (friends, relatives, partner)" },
       { codice: 3, it: "Al lavoro, a scuola o in università",                            en: "At work, school or university" },
       { codice: 4, it: "In spostamento (mezzi pubblici, auto, a piedi, in bici)",         en: "On the move (public transport, car, on foot, by bike)" },
-      { codice: 5, it: "In un altro luogo al chiuso (negozio, bar, palestra, medico…)",   en: "In another indoor place (shop, café, gym, doctor…)" },
+      { codice: 5, it: "In un locale o edificio pubblico (negozio, bar, palestra, ospedale…)", en: "In a public venue or building (shop, café, gym, hospital…)" },
       { codice: 6, it: "All'aperto (parco, piazza, mare, montagna…)",                     en: "Outdoors (park, square, seaside, mountains…)" },
     ],
   },
