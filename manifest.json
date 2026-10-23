@@ -1,17 +1,17 @@
 {
   "id": "./",
-  "name": "Emotio",
-  "short_name": "Emotio",
+  "name": "MoodNow",
+  "short_name": "MoodNow",
   "description": "Questionario dello studio con promemoria",
   "lang": "it",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#160f2b",
-  "theme_color": "#2a1c55",
+  "background_color": "#f3f6f6",
+  "theme_color": "#2f7a7c",
   "icons": [
-    { "src": "icons/emotio-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/emotio-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/emotio-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/moodnow-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/moodnow-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/moodnow-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

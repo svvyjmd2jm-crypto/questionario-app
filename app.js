@@ -60,9 +60,11 @@
     window.navigator.standalone === true;
   // Nuova icona: l'iPhone non aggiorna da solo l'icona di un'app già aggiunta alla Home.
   // Chi l'aveva installata prima (dati già presenti al primo avvio di questa versione) vede un avviso.
-  const ICONA_ATTUALE = "emotio";
+  // Quando si cambia icona basta aggiornare ICONA_ATTUALE: chi ha un'icona precedente vedrà di nuovo l'avviso.
+  const ICONA_ATTUALE = "moodnow";
   if (!mem.get("icona")) mem.set("icona", (isIOS && isInstallata && mem.get("consenso")) ? "vecchia" : ICONA_ATTUALE);
-  const mostraAvvisoIcona = () => mem.get("icona") === "vecchia" && !mem.get("icona_avviso_chiuso");
+  const mostraAvvisoIcona = () => isIOS && isInstallata && mem.get("icona") !== ICONA_ATTUALE
+    && mem.get("icona_avviso_chiuso") !== ICONA_ATTUALE;
   const sistema = () => isIOS ? "iOS" : (/Android/i.test(navigator.userAgent) ? "Android" : "Altro");
 
   // ---------- OneSignal (notifiche) ----------
@@ -211,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "17";
+  const VERSIONE_APP = "18";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -569,7 +571,7 @@
       </section>
       ${mostraAvvisoIcona() ? `
       <section class="scheda avviso-icona">
-        <div class="avviso-icona-testa"><img src="icons/emotio-180.png" alt="" width="52" height="52"><h2>${t("icona_titolo")}</h2></div>
+        <div class="avviso-icona-testa"><img src="icons/moodnow-180.png" alt="" width="52" height="52"><h2>${t("icona_titolo")}</h2></div>
         <p>${t("icona_testo")}</p>
         <ol>${t("icona_passi").map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
         <p class="piccolo">${t("icona_nota")}</p>
@@ -587,7 +589,7 @@
     const br = app.querySelector("#riprova");
     if (br) br.addEventListener("click", () => location.reload());
     const bo = app.querySelector("#icona-ok");
-    if (bo) bo.addEventListener("click", () => { mem.set("icona_avviso_chiuso", true); vHome(); });
+    if (bo) bo.addEventListener("click", () => { mem.set("icona_avviso_chiuso", ICONA_ATTUALE); vHome(); });
     app.querySelector("#privacy").addEventListener("click", () => vai("privacy"));
   }
 

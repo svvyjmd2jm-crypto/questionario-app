@@ -11,8 +11,8 @@ const LINGUE_DISPONIBILI = [
 
 const UI = {
   it: {
-    nome_app: "Emotio",
-    icona_titolo: "È disponibile la nuova icona di Emotio",
+    nome_app: "MoodNow",
+    icona_titolo: "È disponibile la nuova icona di MoodNow",
     icona_testo: "Sull'iPhone l'icona sulla schermata Home non si aggiorna da sola. Per vederla:",
     icona_passi: ["Tieni premuta l'icona dell'app, poi tocca «Rimuovi app» › «Elimina dalla schermata Home».", "Apri il link dello studio in Safari.", "Tocca Condividi › «Aggiungi alla schermata Home».", "Apri la nuova app, ridai il consenso, inserisci gli stessi dati per l'ID e riattiva le notifiche."],
     icona_nota: "Le risposte già inviate restano salvate.",
@@ -113,8 +113,8 @@ const UI = {
   },
 
   en: {
-    nome_app: "Emotio",
-    icona_titolo: "The new Emotio icon is available",
+    nome_app: "MoodNow",
+    icona_titolo: "The new MoodNow icon is available",
     icona_testo: "On iPhone, the Home Screen icon does not update by itself. To see it:",
     icona_passi: ["Touch and hold the app icon, then tap “Remove App” › “Remove from Home Screen”.", "Open the study link in Safari.", "Tap Share › “Add to Home Screen”.", "Open the new app, give your consent again, enter the same details for your ID and turn notifications back on."],
     icona_nota: "The answers you have already sent remain saved.",
@@ -215,8 +215,8 @@ const UI = {
   },
 
   el: {
-    nome_app: "Emotio",
-    icona_titolo: "Η νέα εικόνα του Emotio είναι διαθέσιμη",
+    nome_app: "MoodNow",
+    icona_titolo: "Η νέα εικόνα του MoodNow είναι διαθέσιμη",
     icona_testo: "Στο iPhone η εικόνα στην οθόνη αφετηρίας δεν ενημερώνεται μόνη της. Για να τη δεις:",
     icona_passi: ["Πάτησε παρατεταμένα την εικόνα της εφαρμογής και μετά «Αφαίρεση εφαρμογής» › «Αφαίρεση από την οθόνη αφετηρίας».", "Άνοιξε τον σύνδεσμο της μελέτης στο Safari.", "Πάτησε Κοινοποίηση › «Προσθήκη στην οθόνη αφετηρίας».", "Άνοιξε τη νέα εφαρμογή, δώσε ξανά τη συγκατάθεσή σου, βάλε τα ίδια στοιχεία για το ID και ενεργοποίησε ξανά τις ειδοποιήσεις."],
     icona_nota: "Οι απαντήσεις που έχεις ήδη στείλει παραμένουν αποθηκευμένες.",
