@@ -63,8 +63,8 @@
   // Quando si cambia icona basta aggiornare ICONA_ATTUALE: chi ha un'icona precedente vedrà di nuovo l'avviso.
   const ICONA_ATTUALE = "moodnow";
   if (!mem.get("icona")) mem.set("icona", (isIOS && isInstallata && mem.get("consenso")) ? "vecchia" : ICONA_ATTUALE);
-  const mostraAvvisoIcona = () => isIOS && isInstallata && mem.get("icona") !== ICONA_ATTUALE
-    && mem.get("icona_avviso_chiuso") !== ICONA_ATTUALE;
+  // Avviso «abbiamo cambiato icona»: compare a TUTTI in cima alla home finché non si tocca «Ho capito».
+  const mostraAvvisoIcona = () => mem.get("icona_avviso_chiuso") !== ICONA_ATTUALE;
   const sistema = () => isIOS ? "iOS" : (/Android/i.test(navigator.userAgent) ? "Android" : "Altro");
 
   // ---------- OneSignal (notifiche) ----------
@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "22";
+  const VERSIONE_APP = "23";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -584,7 +584,21 @@
     const n = mem.get("conteggio", 0);
     const inCoda = mem.get("coda", []).filter((r) => r.tipo === "risposta").length;
     const st = statoCompilazione();
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const passi = (lista) => `<ol>${lista.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`;
+    const linkStudio = location.origin + BASE_PATH;
     app.innerHTML = `
+      ${mostraAvvisoIcona() ? `
+      <section class="scheda avviso-icona">
+        <div class="avviso-icona-testa"><img src="icons/moodnow-180.png" alt="" width="56" height="56"><h2>${t("icona_titolo")}</h2></div>
+        <p>${t("icona_testo")}</p>
+        ${isIOS ? passi(t("icona_passi"))
+          : isAndroid ? passi(t("icona_passi_android"))
+          : `<h3>iPhone</h3>${passi(t("icona_passi"))}<h3>Android</h3>${passi(t("icona_passi_android"))}`}
+        <p class="piccolo">${t("icona_link")}: <b class="link-studio">${esc(linkStudio)}</b></p>
+        <p class="piccolo">${t("icona_gia")} ${t("icona_nota")}</p>
+        <button class="btn primario" id="icona-ok">${t("icona_ok")}</button>
+      </section>` : ""}
       <section class="scheda">
         <h1>${t("ciao")}</h1>
         <p>${ultima
@@ -593,14 +607,6 @@
         ${bloccoCompilazione(st)}
         ${inCoda ? `<p class="piccolo">${t("in_attesa", inCoda)}</p>` : ""}
       </section>
-      ${mostraAvvisoIcona() ? `
-      <section class="scheda avviso-icona">
-        <div class="avviso-icona-testa"><img src="icons/moodnow-180.png" alt="" width="52" height="52"><h2>${t("icona_titolo")}</h2></div>
-        <p>${t("icona_testo")}</p>
-        <ol>${t("icona_passi").map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
-        <p class="piccolo">${t("icona_nota")}</p>
-        <button class="btn secondario" id="icona-ok">${t("icona_ok")}</button>
-      </section>` : ""}
       ${bloccoNotifiche()}
       <div class="piede">
         <span>${t("il_tuo_id")}: <b>${esc(mem.get("id_partecipante") || "")}</b></span>

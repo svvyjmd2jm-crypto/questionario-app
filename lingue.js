@@ -13,8 +13,11 @@ const LINGUE_DISPONIBILI = [
 const UI = {
   it: {
     nome_app: "MoodNow",
-    icona_titolo: "È disponibile la nuova icona di MoodNow",
-    icona_testo: "Sull'iPhone l'icona sulla schermata Home non si aggiorna da sola. Per vederla:",
+    icona_titolo: "Abbiamo cambiato l'icona dell'app",
+    icona_testo: "La nuova icona è quella qui accanto. Per averla sul telefono, rimuovi l'app e installala di nuovo:",
+    icona_gia: "Se sulla schermata Home vedi già questa icona, non devi fare nulla: tocca «Ho capito».",
+    icona_passi_android: ["Tieni premuta l'icona dell'app e tocca «Disinstalla» (o «Rimuovi»).", "Apri il link dello studio in Chrome.", "Tocca il menu ⋮ in alto a destra › «Aggiungi a schermata Home» (o «Installa app»).", "Apri la nuova app, ridai il consenso, inserisci gli stessi dati per l'ID e riattiva le notifiche."],
+    icona_link: "Link dello studio",
     icona_passi: ["Tieni premuta l'icona dell'app, poi tocca «Rimuovi app» › «Elimina dalla schermata Home».", "Apri il link dello studio in Safari.", "Tocca Condividi › «Aggiungi alla schermata Home».", "Apri la nuova app, ridai il consenso, inserisci gli stessi dati per l'ID e riattiva le notifiche."],
     icona_nota: "Le risposte già inviate restano salvate.",
     icona_ok: "Ho capito",
@@ -115,8 +118,11 @@ const UI = {
 
   en: {
     nome_app: "MoodNow",
-    icona_titolo: "The new MoodNow icon is available",
-    icona_testo: "On iPhone, the Home Screen icon does not update by itself. To see it:",
+    icona_titolo: "We have changed the app icon",
+    icona_testo: "The new icon is the one shown here. To get it on your phone, remove the app and install it again:",
+    icona_gia: "If you already see this icon on your Home Screen, you do not need to do anything: tap “Got it”.",
+    icona_passi_android: ["Touch and hold the app icon and tap “Uninstall” (or “Remove”).", "Open the study link in Chrome.", "Tap the ⋮ menu at the top right › “Add to Home screen” (or “Install app”).", "Open the new app, give your consent again, enter the same details for your ID and turn notifications back on."],
+    icona_link: "Study link",
     icona_passi: ["Touch and hold the app icon, then tap “Remove App” › “Remove from Home Screen”.", "Open the study link in Safari.", "Tap Share › “Add to Home Screen”.", "Open the new app, give your consent again, enter the same details for your ID and turn notifications back on."],
     icona_nota: "The answers you have already sent remain saved.",
     icona_ok: "Got it",
@@ -217,8 +223,11 @@ const UI = {
 
   el: {
     nome_app: "MoodNow",
-    icona_titolo: "Η νέα εικόνα του MoodNow είναι διαθέσιμη",
-    icona_testo: "Στο iPhone η εικόνα στην οθόνη αφετηρίας δεν ενημερώνεται μόνη της. Για να τη δεις:",
+    icona_titolo: "Αλλάξαμε την εικόνα της εφαρμογής",
+    icona_testo: "Η νέα εικόνα είναι αυτή που βλέπεις εδώ. Για να την έχεις στο κινητό, αφαίρεσε την εφαρμογή και εγκατάστησέ την ξανά:",
+    icona_gia: "Αν βλέπεις ήδη αυτή την εικόνα στην οθόνη αφετηρίας, δεν χρειάζεται να κάνεις τίποτα: πάτησε «Κατάλαβα».",
+    icona_passi_android: ["Πάτησε παρατεταμένα την εικόνα της εφαρμογής και μετά «Απεγκατάσταση» (ή «Αφαίρεση»).", "Άνοιξε τον σύνδεσμο της μελέτης στο Chrome.", "Πάτησε το μενού ⋮ πάνω δεξιά › «Προσθήκη στην αρχική οθόνη» (ή «Εγκατάσταση εφαρμογής»).", "Άνοιξε τη νέα εφαρμογή, δώσε ξανά τη συγκατάθεσή σου, βάλε τα ίδια στοιχεία για το ID και ενεργοποίησε ξανά τις ειδοποιήσεις."],
+    icona_link: "Σύνδεσμος της μελέτης",
     icona_passi: ["Πάτησε παρατεταμένα την εικόνα της εφαρμογής και μετά «Αφαίρεση εφαρμογής» › «Αφαίρεση από την οθόνη αφετηρίας».", "Άνοιξε τον σύνδεσμο της μελέτης στο Safari.", "Πάτησε Κοινοποίηση › «Προσθήκη στην οθόνη αφετηρίας».", "Άνοιξε τη νέα εφαρμογή, δώσε ξανά τη συγκατάθεσή σου, βάλε τα ίδια στοιχεία για το ID και ενεργοποίησε ξανά τις ειδοποιήσεις."],
     icona_nota: "Οι απαντήσεις που έχεις ήδη στείλει παραμένουν αποθηκευμένες.",
     icona_ok: "Κατάλαβα",
@@ -319,8 +328,11 @@ const UI = {
 
   de: {
     nome_app: "MoodNow",
-    icona_titolo: "Das neue MoodNow-Symbol ist verfügbar",
-    icona_testo: "Auf dem iPhone aktualisiert sich das Symbol auf dem Home-Bildschirm nicht von selbst. So siehst du es:",
+    icona_titolo: "Wir haben das App-Symbol geändert",
+    icona_testo: "Das neue Symbol siehst du hier. Um es auf dein Handy zu bekommen, entferne die App und installiere sie neu:",
+    icona_gia: "Wenn du dieses Symbol schon auf deinem Home-Bildschirm siehst, musst du nichts tun: Tippe auf „Verstanden“.",
+    icona_passi_android: ["Halte das App-Symbol gedrückt und tippe auf „Deinstallieren“ (oder „Entfernen“).", "Öffne den Link der Studie in Chrome.", "Tippe oben rechts auf das Menü ⋮ › „Zum Startbildschirm hinzufügen“ (oder „App installieren“).", "Öffne die neue App, gib deine Einwilligung erneut, gib dieselben Angaben für deine ID ein und aktiviere die Benachrichtigungen wieder."],
+    icona_link: "Link der Studie",
     icona_passi: ["Halte das App-Symbol gedrückt und tippe dann auf „App entfernen“ › „Vom Home-Bildschirm entfernen“.", "Öffne den Link der Studie in Safari.", "Tippe auf Teilen › „Zum Home-Bildschirm“.", "Öffne die neue App, gib deine Einwilligung erneut, gib dieselben Angaben für deine ID ein und aktiviere die Benachrichtigungen wieder."],
     icona_nota: "Deine bereits gesendeten Antworten bleiben gespeichert.",
     icona_ok: "Verstanden",

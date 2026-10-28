@@ -230,6 +230,8 @@ main { flex: 1; width: 100%; }
 .avviso-icona-testa h2 { margin: 0; font-size: 1.1rem; }
 .avviso-icona ol { padding-left: 1.2em; margin: 8px 0; }
 .avviso-icona li { margin-bottom: 6px; }
-.avviso-icona .btn.secondario { background: var(--carta); border: 1px solid var(--bordo); width: 100%; }
+.avviso-icona .btn { width: 100%; }
+.avviso-icona h3 { font-size: 1rem; margin: 12px 0 4px; }
+.link-studio { word-break: break-all; user-select: all; -webkit-user-select: all; }
 
 .diagnostica { text-align: center; color: var(--tenue); opacity: .7; margin-top: 18px; font-size: .75rem; }
