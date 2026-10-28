@@ -375,3 +375,133 @@ TESTI.el = {
     <p class="piccolo">Έκδοση ενημέρωσης: ${c.VERSIONE_INFORMATIVA}</p>
   `,
 };
+
+TESTI.de = {
+  // Kurze Vorstellung der Studie (erster Bildschirm)
+  PRESENTAZIONE: (c) => `
+    <p>Wir bitten dich, an der Studie <b>${c.TITOLO_STUDIO}</b> über Gefühle, Gedanken und
+    Erfahrungen im Alltag teilzunehmen.</p>
+    <p>Viermal am Tag sendet dir die App eine Benachrichtigung, um einen kurzen Fragebogen
+    auszufüllen (etwa 2 Minuten). Die Benachrichtigung kommt zu einem zufälligen Zeitpunkt, und
+    ab diesem Moment hast du <b>60 Minuten</b> Zeit zum Antworten. Wenn es nicht klappt, ist das
+    kein Problem: Warte einfach auf die nächste Benachrichtigung. Antworte so, wie du dich in
+    diesem Moment fühlst, und denke an das, was seit dem letzten Fragebogen passiert ist.</p>
+    <p><b>Die Teilnahme ist freiwillig.</b> Du kannst jederzeit aufhören, ohne Angabe von Gründen
+    und ohne jede Folge. In der App kannst du außerdem deine Einwilligung widerrufen und deine
+    Antworten löschen lassen.</p>
+    <p><b>Wir fragen nicht nach deinem Namen, deiner E-Mail-Adresse oder deiner Telefonnummer.</b>
+    Deine Antworten sind nur mit einer ID verknüpft, die du selbst erstellst, und mit einem
+    zufälligen Code, der auf diesem Handy erzeugt wird (pseudonymisierte Daten).</p>
+  `,
+
+  // Einwilligungen: alle erforderlich (gleiche ids wie in der italienischen Version)
+  CONSENSI: [
+    {
+      id: "informativa",
+      testo: "Ich habe die Datenschutzinformation gelesen und bin mindestens 18 Jahre alt.",
+    },
+    {
+      id: "partecipazione",
+      testo: "Ich nehme freiwillig an der Studie teil.",
+    },
+    {
+      id: "dati_salute",
+      testo: "Ich willige ausdrücklich in die Verarbeitung meiner Gesundheitsdaten " +
+        "(Gefühlszustände, Stress, Symptome) für die beschriebenen Forschungszwecke ein (Art. 9 Abs. 2 lit. a DSGVO).",
+    },
+  ],
+
+  // Vollständige Datenschutzinformation nach Art. 13 DSGVO
+  INFORMATIVA: (c) => `
+    <h3>1. Verantwortlicher</h3>
+    <p>${c.TITOLARE}, ${c.TITOLARE_INDIRIZZO}.<br>
+    Wissenschaftliche Leitung: ${c.RESPONSABILE_SCIENTIFICO}, ${c.EMAIL_STUDIO}.<br>
+    Datenschutzbeauftragte/r: ${c.DPO_CONTATTO}.</p>
+
+    <h3>2. Zweck</h3>
+    <p>Deine Daten werden ausschließlich für die wissenschaftliche Studie
+    „${c.TITOLO_STUDIO}“ verarbeitet, die von ${c.COMITATO_ETICO} genehmigt wurde. Die Ergebnisse
+    werden nur in zusammengefasster Form veröffentlicht, ohne Bezug auf einzelne Teilnehmende.</p>
+
+    <h3>3. Welche Daten wir erheben</h3>
+    <ul>
+      <li><b>Antworten im Fragebogen</b>: der Ort, an dem du dich befindest (eine allgemeine
+      Kategorie, nicht deine GPS-Position), Ereignisse des Tages, Gefühlszustände, Gedanken,
+      Symptome. Einige davon sind <b>Gesundheitsdaten</b> (Art. 9 DSGVO).</li>
+      <li><b>Technische Daten zu jedem Fragebogen</b>: Datum und Uhrzeit von Beginn und Absenden,
+      Dauer, Zeit pro Frage und Bewegungen des Reglers, ob du den Fragebogen über eine Erinnerung
+      geöffnet hast, Betriebssystem (iOS/Android), verwendete Sprache.</li>
+      <li><b>Teilnehmer-ID</b>, die du selbst erstellst (die letzten zwei Buchstaben deines
+      Vornamens, die letzten zwei deines Nachnamens und die letzten Ziffern deiner Handynummer,
+      z. B. TONO740). Sie verknüpft deine Fragebögen, auch wenn du das Handy wechselst oder die
+      App neu installierst. Sie enthält weder deinen vollständigen Namen noch deine vollständige
+      Telefonnummer.</li>
+      <li><b>Gerätecode</b>: ein zufälliger Code (z. B. K7P3-QXMA), der auf deinem Handy erzeugt
+      wird und zum Senden deiner Antworten und zum Löschen deiner Daten dient.</li>
+      <li><b>Nachweis der Einwilligung</b>: Datum, Uhrzeit, Sprache und Version der
+      Datenschutzinformation, die du akzeptiert hast.</li>
+      <li><b>Für die Erinnerungen</b>, nur wenn du sie aktivierst: eine technische Gerätekennung
+      für Benachrichtigungen und die Sprache der App. Der Benachrichtigungsdienst erhält niemals
+      deine Antworten.</li>
+    </ul>
+    <p>Wir erheben weder deinen Namen noch deine E-Mail-Adresse, Telefonnummer oder GPS-Position.
+    Die Daten sind <b>pseudonymisiert</b>: Das Forschungsteam verwendet die ID nicht, um dich zu
+    identifizieren, und gleicht sie mit keiner Liste von Namen oder Telefonnummern ab.</p>
+
+    <h3>4. Rechtsgrundlage</h3>
+    <p>Deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) und, für Gesundheitsdaten, deine
+    ausdrückliche Einwilligung (Art. 9 Abs. 2 lit. a DSGVO), unter Beachtung von Art. 110 des
+    italienischen Gesetzesdekrets 196/2003 und der italienischen Verhaltensregeln für die
+    Verarbeitung zu wissenschaftlichen Forschungszwecken.</p>
+
+    <h3>5. Freiwilligkeit</h3>
+    <p>Die Teilnahme ist freiwillig. Ohne Einwilligung kannst du die App nicht nutzen, ohne dass
+    dir daraus irgendeine Folge entsteht. Die Erinnerungen sind freiwillig und können jederzeit
+    ausgeschaltet werden.</p>
+
+    <h3>6. Wer die Daten verarbeitet und wo</h3>
+    <p>Zugang zu den Daten hat nur das berechtigte Forschungsteam. Für den Betrieb der App nutzen
+    wir folgende Dienstleister, die als Auftragsverarbeiter (Art. 28 DSGVO) bestellt sind:</p>
+    <ul>
+      <li><b>Google</b> (Google Workspace): Speicherung der Antworten in einer Tabelle mit
+      beschränktem Zugriff;</li>
+      <li><b>OneSignal Inc.</b> (USA): Versand der Erinnerungen;</li>
+      <li><b>GitHub Inc.</b> (USA): Bereitstellung der App-Dateien. Wie jede Website kann GitHub
+      die IP-Adresse in technischen Protokollen speichern.</li>
+    </ul>
+    <p>Einige dieser Dienstleister können Daten in den USA verarbeiten. Die Übermittlung stützt
+    sich auf das EU-US Data Privacy Framework (Angemessenheitsbeschluss der Europäischen
+    Kommission vom 10. Juli 2023) oder auf Standardvertragsklauseln (Art. 46 DSGVO).</p>
+
+    <h3>7. Speicherdauer</h3>
+    <p>${c.CONSERVAZIONE}. Die Daten für die Erinnerungen werden am Ende der Datenerhebung
+    gelöscht. Noch nicht gesendete Antworten bleiben nur so lange auf deinem Handy, bis sie
+    gesendet werden.</p>
+
+    <h3>8. Deine Rechte</h3>
+    <p>Du kannst Auskunft über deine Daten, ihre Berichtigung, Löschung, die Einschränkung der
+    Verarbeitung und die Datenübertragbarkeit verlangen und der Verarbeitung widersprechen
+    (Art. 15–22 DSGVO). Du kannst deine <b>Einwilligung</b> jederzeit <b>widerrufen</b>, ohne dass
+    die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung berührt wird.</p>
+    <p><b>So geht's:</b> Im Bereich <i>Datenschutz und Daten</i> der App kannst du deine
+    Einwilligung widerrufen und sofort alle deine Antworten löschen. Für die anderen Rechte
+    schreibe an ${c.EMAIL_STUDIO} und gib deine Teilnehmer-ID an, die du in der App findest. Wir
+    können die mit deiner ID verknüpften Daten ${c.TERMINE_REVOCA} löschen oder herausgeben.
+    Danach können die Daten bereits anonymisiert oder in zusammengefasste Auswertungen
+    eingeflossen sein (Art. 17 Abs. 3 lit. d DSGVO).</p>
+    <p>Du hast außerdem das Recht, dich bei der italienischen Datenschutzbehörde (Garante per la
+    protezione dei dati personali, www.garanteprivacy.it) oder bei der Datenschutzbehörde des
+    Landes, in dem du lebst, zu beschweren (Art. 77 DSGVO).</p>
+
+    <h3>9. Sicherheit und Daten auf deinem Handy</h3>
+    <p>Die Daten werden über eine verschlüsselte Verbindung (HTTPS) gesendet. Die App verwendet
+    keine Cookies. Auf deinem Handy speichert sie nur deine ID und den Gerätecode, deine Sprache,
+    das Datum der Einwilligung und eventuell noch nicht gesendete Antworten. Wenn du deine
+    Einwilligung widerrufst, löscht die App auch diese Daten von deinem Handy.</p>
+
+    <h3>10. Automatisierte Entscheidungen</h3>
+    <p>Es findet weder ein Profiling noch eine automatisierte Entscheidungsfindung über dich statt.</p>
+
+    <p class="piccolo">Version der Datenschutzinformation: ${c.VERSIONE_INFORMATIVA}</p>
+  `,
+};

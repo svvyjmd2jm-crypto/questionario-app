@@ -190,7 +190,7 @@
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   function formattaData(ms) {
-    return new Date(ms).toLocaleString(({ it: "it-IT", en: "en-GB", el: "el-GR" })[L()] || "it-IT", {
+    return new Date(ms).toLocaleString(({ it: "it-IT", en: "en-GB", el: "el-GR", de: "de-DE" })[L()] || "it-IT", {
       weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
     });
   }
@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "20";
+  const VERSIONE_APP = "21";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -393,7 +393,7 @@
   function vLingua() {
     app.innerHTML = `
       <section class="scheda centro">
-        <h1>Scegli la lingua<br><span class="sottotitolo-lingua">Choose your language · Επίλεξε γλώσσα</span></h1>
+        <h1>Scegli la lingua<br><span class="sottotitolo-lingua">Choose your language · Επίλεξε γλώσσα · Sprache wählen</span></h1>
         <div class="scelta-lingua">
           ${LINGUE_DISPONIBILI.map((l) => `
             <button class="btn ${lingua === l.codice ? "primario" : "secondario"} grande" data-lingua="${l.codice}">${l.nome}</button>`).join("")}
@@ -625,7 +625,7 @@
         <dl class="dati">
           <dt>${t("tuo_id_partecipante")}</dt><dd><b>${esc(mem.get("id_partecipante") || "—")}</b></dd>
           <dt>${t("codice_dispositivo")}</dt><dd>${esc(codicePartecipante())}</dd>
-          <dt>${t("consenso_dato")}</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString(({ it: "it-IT", en: "en-GB", el: "el-GR" })[L()] || "it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
+          <dt>${t("consenso_dato")}</dt><dd>${cons.il ? esc(new Date(cons.il).toLocaleString(({ it: "it-IT", en: "en-GB", el: "el-GR", de: "de-DE" })[L()] || "it-IT", { dateStyle: "short", timeStyle: "short" })) : "—"}</dd>
           <dt>${t("versione_informativa")}</dt><dd>${esc(cons.versione || "—")}</dd>
           <dt>${t("lingua")}</dt><dd>${esc((LINGUE_DISPONIBILI.find((x) => x.codice === L()) || {}).nome || "")}</dd>
         </dl>
