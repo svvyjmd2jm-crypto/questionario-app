@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "21";
+  const VERSIONE_APP = "22";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -646,7 +646,8 @@
         <button class="btn rosso" id="revoca">${t("ritira_btn")}</button>
       </section>
 
-      <button class="btn larga" id="home">${t("torna_home")}</button>`;
+      <button class="btn larga" id="home">${t("torna_home")}</button>
+      <p class="piccolo diagnostica">v${VERSIONE_APP} · ${sistema()} · ${isInstallata ? "app" : "browser"} · ${esc(String(mem.get("icona") || "-"))}${mem.get("icona_avviso_chiuso") ? " · ok:" + esc(String(mem.get("icona_avviso_chiuso"))) : ""}</p>`;
     app.querySelector("#leggi").addEventListener("click", () => { indietroDa = "privacy"; vai("informativa"); });
     const sn = app.querySelector("#stop-notifiche");
     if (sn) sn.addEventListener("click", disattivaNotifiche);
