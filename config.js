@@ -6,7 +6,7 @@
 
 const CONFIG = {
   // Nome mostrato in alto nell'app (le traduzioni dell'interfaccia sono in lingue.js)
-  NOME_APP: "MoodNow",
+  NOME_APP: "Flexm-App",
 
   // I testi per l'informativa qui sotto possono essere scritti in due lingue così:
   //   TITOLO_STUDIO: { it: "Titolo in italiano", en: "Title in English" },

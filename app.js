@@ -61,7 +61,7 @@
   // Nuova icona: l'iPhone non aggiorna da solo l'icona di un'app già aggiunta alla Home.
   // Chi l'aveva installata prima (dati già presenti al primo avvio di questa versione) vede un avviso.
   // Quando si cambia icona basta aggiornare ICONA_ATTUALE: chi ha un'icona precedente vedrà di nuovo l'avviso.
-  const ICONA_ATTUALE = "moodnow";
+  const ICONA_ATTUALE = "flexm";
   if (!mem.get("icona")) mem.set("icona", (isIOS && isInstallata && mem.get("consenso")) ? "vecchia" : ICONA_ATTUALE);
   // Avviso «abbiamo cambiato icona»: compare a TUTTI in cima alla home finché non si tocca «Ho capito».
   const mostraAvvisoIcona = () => mem.get("icona_avviso_chiuso") !== ICONA_ATTUALE;
@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "24";
+  const VERSIONE_APP = "25";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -590,7 +590,7 @@
     app.innerHTML = `
       ${mostraAvvisoIcona() ? `
       <section class="scheda avviso-icona">
-        <div class="avviso-icona-testa"><img src="icons/moodnow-180.png" alt="" width="56" height="56"><h2>${t("icona_titolo")}</h2></div>
+        <div class="avviso-icona-testa"><img src="icons/flexm-180.png" alt="" width="56" height="56"><h2>${t("icona_titolo")}</h2></div>
         <p>${t("icona_testo")}</p>
         ${isIOS ? passi(t("icona_passi"))
           : isAndroid ? passi(t("icona_passi_android"))

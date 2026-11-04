@@ -12,9 +12,9 @@ const LINGUE_DISPONIBILI = [
 
 const UI = {
   it: {
-    nome_app: "MoodNow",
-    icona_titolo: "Abbiamo cambiato l'icona dell'app",
-    icona_testo: "La nuova icona è quella qui accanto. Per averla sul telefono, rimuovi l'app e installala di nuovo:",
+    nome_app: "Flexm-App",
+    icona_titolo: "Abbiamo cambiato nome e icona dell'app",
+    icona_testo: "L'app ora si chiama Flexm-App e la nuova icona è quella qui accanto. Per averla sul telefono, rimuovi l'app e installala di nuovo:",
     icona_gia: "Se sulla schermata Home vedi già questa icona, non devi fare nulla: tocca «Ho capito».",
     icona_passi_android: ["Tieni premuta l'icona dell'app e tocca «Disinstalla» (o «Rimuovi»).", "Apri il link dello studio in Chrome.", "Tocca il menu ⋮ in alto a destra › «Aggiungi a schermata Home» (o «Installa app»).", "Apri la nuova app, ridai il consenso, inserisci gli stessi dati per l'ID e riattiva le notifiche."],
     icona_link: "Link dello studio",
@@ -117,9 +117,9 @@ const UI = {
   },
 
   en: {
-    nome_app: "MoodNow",
-    icona_titolo: "We have changed the app icon",
-    icona_testo: "The new icon is the one shown here. To get it on your phone, remove the app and install it again:",
+    nome_app: "Flexm-App",
+    icona_titolo: "We have changed the app's name and icon",
+    icona_testo: "The app is now called Flexm-App and the new icon is the one shown here. To get it on your phone, remove the app and install it again:",
     icona_gia: "If you already see this icon on your Home Screen, you do not need to do anything: tap “Got it”.",
     icona_passi_android: ["Touch and hold the app icon and tap “Uninstall” (or “Remove”).", "Open the study link in Chrome.", "Tap the ⋮ menu at the top right › “Add to Home screen” (or “Install app”).", "Open the new app, give your consent again, enter the same details for your ID and turn notifications back on."],
     icona_link: "Study link",
@@ -222,9 +222,9 @@ const UI = {
   },
 
   el: {
-    nome_app: "MoodNow",
-    icona_titolo: "Αλλάξαμε την εικόνα της εφαρμογής",
-    icona_testo: "Η νέα εικόνα είναι αυτή που βλέπεις εδώ. Για να την έχεις στο κινητό, αφαίρεσε την εφαρμογή και εγκατάστησέ την ξανά:",
+    nome_app: "Flexm-App",
+    icona_titolo: "Αλλάξαμε το όνομα και την εικόνα της εφαρμογής",
+    icona_testo: "Η εφαρμογή λέγεται πλέον Flexm-App και η νέα εικόνα είναι αυτή που βλέπεις εδώ. Για να την έχεις στο κινητό, αφαίρεσε την εφαρμογή και εγκατάστησέ την ξανά:",
     icona_gia: "Αν βλέπεις ήδη αυτή την εικόνα στην οθόνη αφετηρίας, δεν χρειάζεται να κάνεις τίποτα: πάτησε «Κατάλαβα».",
     icona_passi_android: ["Πάτησε παρατεταμένα την εικόνα της εφαρμογής και μετά «Απεγκατάσταση» (ή «Αφαίρεση»).", "Άνοιξε τον σύνδεσμο της μελέτης στο Chrome.", "Πάτησε το μενού ⋮ πάνω δεξιά › «Προσθήκη στην αρχική οθόνη» (ή «Εγκατάσταση εφαρμογής»).", "Άνοιξε τη νέα εφαρμογή, δώσε ξανά τη συγκατάθεσή σου, βάλε τα ίδια στοιχεία για το ID και ενεργοποίησε ξανά τις ειδοποιήσεις."],
     icona_link: "Σύνδεσμος της μελέτης",
@@ -327,9 +327,9 @@ const UI = {
   },
 
   de: {
-    nome_app: "MoodNow",
-    icona_titolo: "Wir haben das App-Symbol geändert",
-    icona_testo: "Das neue Symbol siehst du hier. Um es auf dein Handy zu bekommen, entferne die App und installiere sie neu:",
+    nome_app: "Flexm-App",
+    icona_titolo: "Wir haben Name und Symbol der App geändert",
+    icona_testo: "Die App heißt jetzt Flexm-App, und das neue Symbol siehst du hier. Um es auf dein Handy zu bekommen, entferne die App und installiere sie neu:",
     icona_gia: "Wenn du dieses Symbol schon auf deinem Home-Bildschirm siehst, musst du nichts tun: Tippe auf „Verstanden“.",
     icona_passi_android: ["Halte das App-Symbol gedrückt und tippe auf „Deinstallieren“ (oder „Entfernen“).", "Öffne den Link der Studie in Chrome.", "Tippe oben rechts auf das Menü ⋮ › „Zum Startbildschirm hinzufügen“ (oder „App installieren“).", "Öffne die neue App, gib deine Einwilligung erneut, gib dieselben Angaben für deine ID ein und aktiviere die Benachrichtigungen wieder."],
     icona_link: "Link der Studie",
