@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "23";
+  const VERSIONE_APP = "24";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -605,7 +605,7 @@
           ? `${t("ultima_compilazione")}: <b>${esc(formattaData(ultima))}</b><br>${t("compilazioni_totali")}: <b>${n}</b>`
           : t("mai_compilato")}</p>
         ${bloccoCompilazione(st)}
-        ${inCoda ? `<p class="piccolo">${t("in_attesa", inCoda)}</p>` : ""}
+        ${inCoda ? `<div class="avviso">${t("in_attesa", inCoda)}</div>` : ""}
       </section>
       ${bloccoNotifiche()}
       <div class="piede">
