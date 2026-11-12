@@ -36,15 +36,17 @@ const CONFIG = {
     ["17:00", "19:00"],
     ["21:00", "23:00"],
   ],
-  // In ogni fascia la notifica arriva in un minuto casuale. Il questionario si apre
-  // SOLO quando arriva la notifica e resta compilabile per questi minuti, uguali per tutti
-  // (es. notifica alle 22:52 → compilabile fino alle 23:52), al massimo una volta per fascia.
-  MINUTI_DOPO_NOTIFICA: 60,
+  // In ogni fascia la notifica arriva in un minuto casuale. Il questionario si apre SOLO
+  // quando arriva la notifica e resta compilabile fino alla fine della fascia PIÙ questi minuti
+  // (es. fascia 9–11, notifica alle 9:30 → compilabile fino alle 12:00), una volta per fascia.
+  // Fine fascia + questi minuti deve restare prima dell'inizio della fascia successiva
+  // (con 60: 12:00 < 13:00, 16:00 < 17:00, 20:00 < 21:00 → sempre un'ora di stacco).
+  MINUTI_DOPO_FINE_FASCIA: 60,
 
   // ---------------- DATI PER L'INFORMATIVA PRIVACY ----------------
   // Cambia la versione ogni volta che modifichi l'informativa: viene
   // registrata insieme a ogni consenso.
-  VERSIONE_INFORMATIVA: "1.1 del 23/10/2026",
+  VERSIONE_INFORMATIVA: "1.2 del 12/11/2026",
 
   TITOLO_STUDIO: "[DA COMPILARE: titolo dello studio]",
   TITOLARE: "[DA COMPILARE: ente titolare del trattamento, es. Università di ..., Dipartimento di ...]",

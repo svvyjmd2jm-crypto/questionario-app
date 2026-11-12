@@ -15,7 +15,7 @@ TESTI.it = {
     pensieri ed esperienze nella vita di tutti i giorni.</p>
     <p>Quattro volte al giorno l'app ti invierà una notifica per compilare un breve
     questionario (circa 2 minuti). La notifica arriva in un momento casuale e da quel
-    momento hai <b>60 minuti</b> per rispondere. Se non riesci, nessun problema: aspetta la notifica
+    momento hai <b>almeno un'ora</b> per rispondere. Se non riesci, nessun problema: aspetta la notifica
     successiva. Rispondi pensando a come ti senti in quel momento e a quello che è
     successo dall'ultima compilazione.</p>
     <p><b>Partecipare è volontario.</b> Puoi smettere quando vuoi, senza dare spiegazioni
@@ -139,7 +139,7 @@ TESTI.en = {
     thoughts and experiences in everyday life.</p>
     <p>Four times a day the app will send you a notification to answer a short
     questionnaire (about 2 minutes). The notification arrives at a random moment and from
-    that moment you have <b>60 minutes</b> to answer. If you cannot, that is fine: just wait for the next
+    that moment you have <b>at least one hour</b> to answer. If you cannot, that is fine: just wait for the next
     notification. Answer thinking about how you feel at that moment and about what has
     happened since the last questionnaire.</p>
     <p><b>Taking part is voluntary.</b> You can stop whenever you want, without giving any
@@ -260,7 +260,7 @@ TESTI.el = {
     τις σκέψεις και τις εμπειρίες της καθημερινής ζωής.</p>
     <p>Τέσσερις φορές την ημέρα η εφαρμογή θα σου στέλνει μια ειδοποίηση για να συμπληρώσεις ένα σύντομο
     ερωτηματολόγιο (περίπου 2 λεπτά). Η ειδοποίηση έρχεται σε μια τυχαία στιγμή και από
-    εκείνη τη στιγμή έχεις <b>60 λεπτά</b> για να απαντήσεις. Αν δεν μπορείς, δεν πειράζει: περίμενε την επόμενη
+    εκείνη τη στιγμή έχεις <b>τουλάχιστον μία ώρα</b> για να απαντήσεις. Αν δεν μπορείς, δεν πειράζει: περίμενε την επόμενη
     ειδοποίηση. Απάντησε σκεπτόμενος/η πώς νιώθεις εκείνη τη στιγμή
     και τι έχει συμβεί από την τελευταία συμπλήρωση.</p>
     <p><b>Η συμμετοχή είναι εθελοντική.</b> Μπορείς να σταματήσεις όποτε θέλεις, χωρίς να δώσεις
@@ -383,7 +383,7 @@ TESTI.de = {
     Erfahrungen im Alltag teilzunehmen.</p>
     <p>Viermal am Tag sendet dir die App eine Benachrichtigung, um einen kurzen Fragebogen
     auszufüllen (etwa 2 Minuten). Die Benachrichtigung kommt zu einem zufälligen Zeitpunkt, und
-    ab diesem Moment hast du <b>60 Minuten</b> Zeit zum Antworten. Wenn es nicht klappt, ist das
+    ab diesem Moment hast du <b>mindestens eine Stunde</b> Zeit zum Antworten. Wenn es nicht klappt, ist das
     kein Problem: Warte einfach auf die nächste Benachrichtigung. Antworte so, wie du dich in
     diesem Moment fühlst, und denke an das, was seit dem letzten Fragebogen passiert ist.</p>
     <p><b>Die Teilnahme ist freiwillig.</b> Du kannst jederzeit aufhören, ohne Angabe von Gründen

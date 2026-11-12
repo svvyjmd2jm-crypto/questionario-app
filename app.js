@@ -213,7 +213,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "25";
+  const VERSIONE_APP = "26";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 
@@ -277,15 +277,22 @@
   const chiaveFascia = (f) => f.data + "|" + f.etichetta;
 
   // ---------- notifiche già partite ----------
-  // Il questionario si apre SOLO quando arriva la notifica della fascia e resta aperto
-  // per MINUTI_DOPO_NOTIFICA minuti (campionamento casuale: il momento lo sceglie il caso).
+  // Il questionario si apre SOLO quando arriva la notifica della fascia e resta aperto fino alla
+  // fine della fascia + MINUTI_DOPO_FINE_FASCIA (campionamento casuale: il momento lo sceglie il caso).
   // L'app conosce la notifica dal tocco sulla notifica (parametro t) oppure dallo script
   // Google, che comunica solo quelle già partite (mai quelle future).
   // Vengono da: notifica toccata (parametro t), oppure dallo script Google,
   // che comunica solo quelle già partite oggi (mai quelle future).
   function notificheNote() { return mem.get("notifiche_note", {}); }
+  // Fascia a cui appartiene una notifica: tollera 15 minuti di ritardo nell'invio
+  // (se Google la spedisce poco dopo la fine della fascia, conta comunque per quella fascia).
+  function fasciaDellaNotifica(ms) {
+    const r = adessoRoma(ms);
+    const f = FASCE.find((x) => r.minuti >= x.inizio && r.minuti < x.fine + 15);
+    return f ? Object.assign({ data: r.data }, f) : null;
+  }
   function annotaNotifica(ms) {
-    const f = fasciaCorrente(ms);
+    const f = fasciaDellaNotifica(ms);
     if (!f) return;
     const n = notificheNote();
     const k = chiaveFascia(f);
@@ -297,25 +304,27 @@
   }
   const notificaDellaFascia = (f) => (f ? notificheNote()[chiaveFascia(f)] || null : null);
 
-  // Fascia che si può compilare adesso: quella la cui notifica è arrivata da meno di
-  // MINUTI_DOPO_NOTIFICA minuti. Senza notifica il questionario resta chiuso.
-  const MIN_DOPO_NOTIFICA = Number(CONFIG.MINUTI_DOPO_NOTIFICA || 60);
+  // Fascia che si può compilare adesso: quella la cui notifica è già arrivata, fino alla
+  // fine della fascia + MINUTI_DOPO_FINE_FASCIA. Senza notifica il questionario resta chiuso.
+  const MIN_DOPO_FINE = Number(CONFIG.MINUTI_DOPO_FINE_FASCIA ?? 60);
+  function scadenzaNotifica(ms, f) {
+    // minuti mancanti dalla notifica alla fine della fascia + margine (anche oltre mezzanotte)
+    return ms + (f.fine + MIN_DOPO_FINE - adessoRoma(ms).minuti) * 60000;
+  }
   function fasciaAttiva() {
     const ora = Date.now(), n = notificheNote();
     let scelta = null, msScelta = 0;
     Object.keys(n).forEach((k) => {
       const ms = Number(n[k]);
-      if (ms <= ora + 60000 && ora < ms + MIN_DOPO_NOTIFICA * 60000 && ms > msScelta) {
-        const g = fasciaCorrente(ms);
-        if (g) { scelta = g; msScelta = ms; }
-      }
+      const g = fasciaDellaNotifica(ms);
+      if (g && ms <= ora + 60000 && ora < scadenzaNotifica(ms, g) && ms > msScelta) { scelta = g; msScelta = ms; }
     });
     return scelta;
   }
-  // Siamo entro MINUTI_DOPO_NOTIFICA dalla fine di una fascia? (serve per chiedere allo script le notifiche)
+  // Siamo entro MINUTI_DOPO_FINE_FASCIA dalla fine di una fascia? (serve per chiedere allo script le notifiche)
   function pocoDopoUnaFascia() {
     const m = adessoRoma().minuti;
-    return FASCE.some((x) => (m - x.fine + 1440) % 1440 < MIN_DOPO_NOTIFICA);
+    return FASCE.some((x) => (m - x.fine + 1440) % 1440 < MIN_DOPO_FINE + 15);
   }
 
   let ultimoControllo = 0;
@@ -350,7 +359,7 @@
     const l = mem.get("fasce_compilate", []).concat(chiaveFascia(f));
     mem.set("fasce_compilate", l.slice(-80));
   }
-  // Si può compilare adesso? Solo entro MINUTI_DOPO_NOTIFICA dalla notifica e una sola volta per fascia.
+  // Si può compilare adesso? Solo dopo la notifica, fino a fine fascia + MINUTI_DOPO_FINE_FASCIA, una volta per fascia.
   function statoCompilazione() {
     if (!FASCE.length) return { ok: true, fascia: null };
     const f = fasciaAttiva();
