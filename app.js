@@ -145,23 +145,40 @@
   }
 
   // ---------- invio dati (con coda se offline) ----------
-  async function inviaCoda() {
-    const coda = mem.get("coda", []);
-    if (!coda.length || !CONFIG.URL_APPS_SCRIPT) return;
-    const rimaste = [];
-    for (const r of coda) {
+  // Invia consensi e risposte allo script. Un record lascia il telefono solo quando lo script
+  // risponde "ok" (o lo rifiuta come non valido); se lo script va in errore resta in coda e
+  // viene reinviato. Se il browser non permette di leggere la risposta, si invia comunque
+  // (come nelle versioni precedenti): lo script scarta i doppioni.
+  let invioInCorso = false;
+  async function inviaUno(r) {
+    const corpo = { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(r) };
+    try {
+      const risposta = await fetch(CONFIG.URL_APPS_SCRIPT, corpo);
+      const t = await risposta.text();
+      if (t.indexOf("ok") === 0) return true;          // registrato (o doppione già registrato)
+      if (t.indexOf("errore:") === 0) return true;     // dato non valido: inutile reinviarlo
+      return false;                                    // errore dello script: si riprova
+    } catch (e) {
+      if (navigator.onLine === false) return false;    // senza rete: si riprova dopo
       try {
-        await fetch(CONFIG.URL_APPS_SCRIPT, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(r),
-        });
-      } catch (e) {
-        rimaste.push(r);
-      }
+        await fetch(CONFIG.URL_APPS_SCRIPT, Object.assign({ mode: "no-cors" }, corpo));
+        return true;
+      } catch (e2) { return false; }
     }
-    mem.set("coda", rimaste);
+  }
+  async function inviaCoda() {
+    if (invioInCorso || !CONFIG.URL_APPS_SCRIPT) return;
+    const coda = mem.get("coda", []);
+    if (!coda.length) return;
+    invioInCorso = true;
+    const inviati = new Set();
+    try {
+      for (const r of coda) { if (await inviaUno(r)) inviati.add(JSON.stringify(r)); }
+    } finally {
+      // rilegge la coda: i record aggiunti nel frattempo restano
+      mem.set("coda", mem.get("coda", []).filter((r) => !inviati.has(JSON.stringify(r))));
+      invioInCorso = false;
+    }
   }
   function accoda(record) {
     mem.set("coda", mem.get("coda", []).concat(record));
@@ -213,7 +230,7 @@
   let tempi = {};             // millisecondi passati su ogni domanda
   let dettagli = {};          // per ogni domanda: comparsa, primo tocco, valori, risposta definitiva
   let ultimoPassoMostrato = -1; // per contare quante volte si torna su una domanda
-  const VERSIONE_APP = "26";
+  const VERSIONE_APP = "27";
   let movimenti = [];         // ogni singolo evento sullo slider (tocco, spostamento, rilascio, conferma)
   let tDomanda = null;        // quando è comparsa la domanda corrente
 

@@ -481,7 +481,7 @@ TESTI.de = {
     <h3>8. Deine Rechte</h3>
     <p>Du kannst Auskunft über deine Daten, ihre Berichtigung, Löschung, die Einschränkung der
     Verarbeitung und die Datenübertragbarkeit verlangen und der Verarbeitung widersprechen
-    (Art. 15–22 DSGVO). Du kannst deine <b>Einwilligung</b> jederzeit <b>widerrufen</b>, ohne dass
+    (Art. 15–22 DSGVO). Du kannst <b>deine Einwilligung jederzeit widerrufen</b>, ohne dass
     die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung berührt wird.</p>
     <p><b>So geht's:</b> Im Bereich <i>Datenschutz und Daten</i> der App kannst du deine
     Einwilligung widerrufen und sofort alle deine Antworten löschen. Für die anderen Rechte

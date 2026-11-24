@@ -277,7 +277,7 @@ const UI = {
     err_scaricare: "δεν ήταν δυνατή η λήψη της υπηρεσίας ειδοποιήσεων (χωρίς σύνδεση ή περιεχόμενο αποκλεισμένο από το πρόγραμμα περιήγησης)",
     err_timeout: "η υπηρεσία ειδοποιήσεων δεν απάντησε μέσα σε 20 δευτερόλεπτα",
 
-    compila: "Συμπλήρωσε το ερωτηματολόγιο",
+    compila: "Ξεκίνα το ερωτηματολόγιο",
     grazie: "Ευχαριστούμε!",
     gia_compilato: "Έχεις ήδη συμπληρώσει το ερωτηματολόγιο. Περίμενε την επόμενη ειδοποίηση.",
     aspetta_notifica: "Περίμενε την επόμενη ειδοποίηση για να συμπληρώσεις το ερωτηματολόγιο.",
@@ -402,7 +402,7 @@ const UI = {
     stop_testo: "Du kannst die Erinnerungen ausschalten und trotzdem weiter teilnehmen.",
     disattiva_promemoria: "Erinnerungen ausschalten",
     ritira_titolo: "Einwilligung widerrufen",
-    ritira_testo: "Deine Teilnahme endet und <b>alle deine Antworten werden</b> aus dem Studienarchiv <b>gelöscht</b>. Auch die Daten für die Erinnerungen und die auf diesem Handy gespeicherten Daten werden gelöscht.",
+    ritira_testo: "Deine Teilnahme endet und <b>alle deine Antworten werden aus dem Studienarchiv gelöscht</b>. Auch die Daten für die Erinnerungen und die auf diesem Handy gespeicherten Daten werden gelöscht.",
     ritira_btn: "Einwilligung widerrufen und meine Daten löschen",
     torna_home: "Zur Startseite",
     sei_sicuro: "Bist du sicher?",
